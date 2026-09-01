@@ -22,7 +22,8 @@ the text moves instead.
 
 ## Status
 
-**v0.1** — reads `.md` and `.txt`. See [`BACKLOG.md`](BACKLOG.md) for what is built and what is next.
+**v0.1.0** — reads `.md` and `.txt`. See [`CHANGELOG.md`](CHANGELOG.md) for what this release
+contains and [`BACKLOG.md`](BACKLOG.md) for what comes next.
 
 ## What it is not
 
