@@ -1,0 +1,8 @@
+[package]
+name = "oxidiris"
+version = "0.1.0"
+edition = "2024"
+description = "A Rust TUI that leverages RSVP to stream docs to your focus point—zero eye movement required."
+
+[dependencies]
+ratatui = "0.30.2"
