@@ -1,0 +1,5 @@
+See Fig. 3 for the layout used by Rayner et al. in their study.
+That is, i.e. the regression rate, e.g. around 15 percent.
+Compare vs. the control group, No. 5 in the table.
+Release v1.2.3 changed std::fmt behaviour, approx. 20 percent faster.
+Dr. Rayner published this. The next sentence really does start here.

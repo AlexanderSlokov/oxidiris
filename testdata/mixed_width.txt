@@ -1,0 +1,1 @@
+ascii 日本語 👍 mixed widths on one line
