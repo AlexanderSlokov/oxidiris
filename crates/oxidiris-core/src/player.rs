@@ -92,12 +92,15 @@ impl Player {
         (self.cursor.min(self.tokens.len().saturating_sub(1)) + 1, self.tokens.len())
     }
 
-    /// Fraction of the document already consumed, in `0.0..=1.0`.
+    /// Position within the document, in `0.0..=1.0`.
+    ///
+    /// Defined as the exact inverse of [`Player::seek_ratio`]: 0.0 on the first token and 1.0 on
+    /// the last, so jumping to a percentage and reading the percentage back agree.
     pub fn progress_ratio(&self) -> f64 {
-        if self.tokens.is_empty() {
-            return 1.0;
+        match self.tokens.len() {
+            0 | 1 => 0.0,
+            n => self.cursor as f64 / (n - 1) as f64,
         }
-        self.cursor as f64 / self.tokens.len() as f64
     }
 
     /// Start advancing. Restarts from the top if the stream had finished.
@@ -310,6 +313,19 @@ mod tests {
         p.seek_blocks(-1);
         p.seek_blocks(-1);
         assert_eq!(p.progress().0, 1);
+    }
+
+    #[test]
+    fn progress_ratio_is_the_inverse_of_seek_ratio() {
+        let mut p = player_from(DOC);
+        p.goto_start();
+        assert!((p.progress_ratio() - 0.0).abs() < 1e-9);
+        p.goto_end();
+        assert!((p.progress_ratio() - 1.0).abs() < 1e-9);
+        for target in [0.25, 0.5, 0.75] {
+            p.seek_ratio(target);
+            assert!((p.progress_ratio() - target).abs() < 0.05, "round trip failed at {target}");
+        }
     }
 
     #[test]

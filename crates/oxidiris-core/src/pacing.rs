@@ -69,7 +69,7 @@ pub fn tokenize(doc: &Document, mode: PacingMode) -> Vec<Token> {
         }
         let first_of_block = tokens.len();
         for fragment in &block.fragments {
-            push_fragment(&mut tokens, block, fragment, mode);
+            push_fragment(&mut tokens, &doc.source, block, fragment);
         }
         if tokens.len() == first_of_block {
             continue; // Block contributed nothing readable.
@@ -96,19 +96,44 @@ pub fn tokenize(doc: &Document, mode: PacingMode) -> Vec<Token> {
     tokens
 }
 
+/// Byte range for one word, guaranteed to be a valid slice of `source`.
+///
+/// Falls back to the whole fragment when the fragment's text is not a verbatim copy of its source
+/// range, which happens for Markdown escapes and character entities. A slightly coarse highlight
+/// is a fair price for never handing Review Mode a range that would panic on slicing.
+fn word_span(
+    source: &str,
+    fragment: &Fragment,
+    word: &segment::Word<'_>,
+    exact: bool,
+) -> core::ops::Range<usize> {
+    if exact {
+        let start = fragment.byte_span.start + word.start;
+        let end = fragment.byte_span.start + word.end;
+        if end <= source.len() && source.is_char_boundary(start) && source.is_char_boundary(end) {
+            return start..end;
+        }
+    }
+    let fb = fragment.byte_span.clone();
+    if fb.end <= source.len()
+        && source.is_char_boundary(fb.start)
+        && source.is_char_boundary(fb.end)
+    {
+        return fb;
+    }
+    0..0
+}
+
 /// Split one fragment into tokens and append them.
-fn push_fragment(tokens: &mut Vec<Token>, block: &Block, fragment: &Fragment, _mode: PacingMode) {
+fn push_fragment(tokens: &mut Vec<Token>, source: &str, block: &Block, fragment: &Fragment) {
+    let exact = source.get(fragment.byte_span.clone()) == Some(fragment.text.as_str());
     for word in segment::split_words(&fragment.text) {
         let graphemes = segment::grapheme_count(word.text);
         if graphemes == 0 {
             continue;
         }
         let layout = orp::layout(word.text);
-        // Clamp into the fragment: Markdown escapes and entities make a fragment's text shorter
-        // than the source range it came from, so a naive offset could point past the fragment.
-        // Review Mode slices `Document::source` with these spans, so they must always be valid.
-        let start = (fragment.byte_span.start + word.start).min(fragment.byte_span.end);
-        let end = (fragment.byte_span.start + word.end).min(fragment.byte_span.end);
+        let byte_span = word_span(source, fragment, &word, exact);
 
         tokens.push(Token {
             text: word.text.to_string(),
@@ -119,7 +144,7 @@ fn push_fragment(tokens: &mut Vec<Token>, block: &Block, fragment: &Fragment, _m
             pause_ms: 0,
             kind: fragment.kind,
             block_id: block.id,
-            byte_span: start..end,
+            byte_span,
         });
     }
 }
@@ -198,7 +223,10 @@ mod tests {
 
     #[test]
     fn linear_mode_gives_every_token_the_same_duration() {
-        let tokens = tokens_of("# Title\n\nA short one and a considerably longer one.\n", PacingMode::Linear);
+        let tokens = tokens_of(
+            "# Title\n\nA short one and a considerably longer one.\n",
+            PacingMode::Linear,
+        );
         assert!(tokens.len() > 3);
         let first = tokens[0].duration_ms(300);
         assert!(tokens.iter().all(|t| t.duration_ms(300) == first));
@@ -206,7 +234,7 @@ mod tests {
 
     #[test]
     fn sentence_end_costs_about_two_and_a_quarter_times_a_plain_word() {
-        let tokens = tokens_of("alpha bravo. charlie delta\n", PacingMode::Natural);
+        let tokens = tokens_of("alpha bravo. Charlie delta\n", PacingMode::Natural);
         let plain = tokens.iter().find(|t| t.text == "alpha").unwrap();
         let stop = tokens.iter().find(|t| t.text == "bravo.").unwrap();
         // Same length bucket, so the ratio isolates the punctuation factor.

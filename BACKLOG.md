@@ -70,31 +70,57 @@ Critical path: `OXD-001 → OXD-010 → OXD-011 → OXD-012 → OXD-018 → OXD-
 
 ---
 
+## Current State
+
+**Milestone v0.1 (OXD-027) is complete.** Phases 0-2 are implemented, tested and verified against
+this file: `oxidiris BACKLOG.md` reads it as 5 494 tokens across 81 headings.
+
+| | |
+|---|---|
+| Tests | 175 passing (81 engine, 81 terminal, 12 corpus, 1 doctest) |
+| Gate | `make check` — fmt, clippy `-D warnings`, tests, wasm constraint |
+| Verified | Anchor column fixed across the full Unicode corpus; deadline scheduler drift-free over 1 000 steps; live pty session confirms key dispatch, help popup and terminal restore |
+
+Deviations from the spec found during implementation are recorded in `docs/decisions/` and
+back-annotated into the spec, per the note at the bottom of this file. So far: ADR 001
+(`token-timing.md`), which replaced `Token::duration_ms` with a WPM-independent weight.
+
+Known gaps carried forward, all deliberate and tracked:
+
+- Split view, outline and search are Phase 3-4 (OXD-031, OXD-032, OXD-043)
+- CJK still splits on whitespace only — blocked on **DEC-02**, not papered over
+- `--theme`, `--chunk`, `--start`, `--no-resume`, `--config` parse but report themselves as
+  unimplemented in the status bar rather than failing silently
+- `-` (stdin) falls back to `--dump`: the TUI cannot read keys while stdin is a pipe. Proper
+  support needs OXD-047
+
+---
+
 ## Overview Table
 
 | ID | Task | Phase | Size | Depends | Status |
 |---|---|---|---|---|---|
-| OXD-001 | Split Cargo workspace | 0 | M | — | ⬜ Todo |
-| OXD-002 | Metadata & MSRV | 0 | S | OXD-001 | ⬜ Todo |
-| OXD-003 | CI baseline | 0 | M | OXD-001 | ⬜ Todo |
-| OXD-004 | `testdata/` corpus | 0 | S | OXD-001 | ⬜ Todo |
-| OXD-010 | Token & Document data types | 1 | M | OXD-001 | ⬜ Todo |
-| OXD-011 | Unicode Segmenter | 1 | M | OXD-010 | ⬜ Todo |
-| OXD-012 | ORP Algorithm | 1 | M | OXD-011 | ⬜ Todo |
-| OXD-013 | Pacing Engine | 1 | M | OXD-010 | ⬜ Todo |
-| OXD-014 | Sentence boundary heuristic | 1 | S | OXD-013 | ⬜ Todo |
-| OXD-015 | Encoding Detection | 1 | S | OXD-001 | ⬜ Todo |
-| OXD-016 | Plain Text Parser | 1 | M | OXD-010 | ⬜ Todo |
-| OXD-017 | Markdown Parser | 1 | L | OXD-016 | ⬜ Todo |
-| OXD-018 | Player state machine | 1 | L | OXD-012, OXD-013 | ⬜ Todo |
-| OXD-020 | CLI Framework (clap) | 2 | M | OXD-001 | ⬜ Todo |
-| OXD-021 | Event loop + deadline clock | 2 | L | OXD-018 | ⬜ Todo |
-| OXD-022 | Terminal capability detection | 2 | M | OXD-020 | ⬜ Todo |
-| OXD-023 | RSVP Widget (anchor column) | 2 | L | OXD-021, OXD-022 | ⬜ Todo |
-| OXD-024 | Status bar & progress bar | 2 | S | OXD-023 | ⬜ Todo |
-| OXD-025 | Help popup `?` | 2 | S | OXD-023 | ⬜ Todo |
-| OXD-026 | `--dump` mode | 2 | S | OXD-017, OXD-020 | ⬜ Todo |
-| OXD-027 | Milestone v0.1 | 2 | S | OXD-023…026 | ⬜ Todo |
+| OXD-001 | Split Cargo workspace | 0 | M | — | ✅ Done |
+| OXD-002 | Metadata & MSRV | 0 | S | OXD-001 | ✅ Done |
+| OXD-003 | CI baseline | 0 | M | OXD-001 | ✅ Done |
+| OXD-004 | `testdata/` corpus | 0 | S | OXD-001 | ✅ Done |
+| OXD-010 | Token & Document data types | 1 | M | OXD-001 | ✅ Done |
+| OXD-011 | Unicode Segmenter | 1 | M | OXD-010 | ✅ Done |
+| OXD-012 | ORP Algorithm | 1 | M | OXD-011 | ✅ Done |
+| OXD-013 | Pacing Engine | 1 | M | OXD-010 | ✅ Done |
+| OXD-014 | Sentence boundary heuristic | 1 | S | OXD-013 | ✅ Done |
+| OXD-015 | Encoding Detection | 1 | S | OXD-001 | ✅ Done |
+| OXD-016 | Plain Text Parser | 1 | M | OXD-010 | ✅ Done |
+| OXD-017 | Markdown Parser | 1 | L | OXD-016 | ✅ Done |
+| OXD-018 | Player state machine | 1 | L | OXD-012, OXD-013 | ✅ Done |
+| OXD-020 | CLI Framework (clap) | 2 | M | OXD-001 | ✅ Done |
+| OXD-021 | Event loop + deadline clock | 2 | L | OXD-018 | ✅ Done |
+| OXD-022 | Terminal capability detection | 2 | M | OXD-020 | ✅ Done |
+| OXD-023 | RSVP Widget (anchor column) | 2 | L | OXD-021, OXD-022 | ✅ Done |
+| OXD-024 | Status bar & progress bar | 2 | S | OXD-023 | ✅ Done |
+| OXD-025 | Help popup `?` | 2 | S | OXD-023 | ✅ Done |
+| OXD-026 | `--dump` mode | 2 | S | OXD-017, OXD-020 | ✅ Done |
+| OXD-027 | Milestone v0.1 | 2 | S | OXD-023…026 | ✅ Done |
 | OXD-030 | Modal keymap system | 3 | M | OXD-021 | ⬜ Todo |
 | OXD-031 | Full-Text Panel + highlight | 3 | L | OXD-030 | ⬜ Todo |
 | OXD-032 | Outline / TOC Sidebar | 3 | M | OXD-031 | ⬜ Todo |

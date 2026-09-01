@@ -61,6 +61,14 @@ pub fn grapheme_count(text: &str) -> usize {
     text.graphemes(true).count()
 }
 
+/// Grapheme clusters of `text`, in order.
+///
+/// Exposed so that consumers (including the renderer) never have to reach for a Unicode crate of
+/// their own and risk disagreeing with the engine about where a character begins.
+pub fn graphemes(text: &str) -> Vec<&str> {
+    text.graphemes(true).collect()
+}
+
 /// Terminal column width of `text` per UAX #11.
 ///
 /// This is what the renderer must use for alignment: `"日本語"` is 3 graphemes but 6 columns.
@@ -157,6 +165,14 @@ mod tests {
         let text = "alpha beta  gamma";
         for w in split_words(text) {
             assert_eq!(&text[w.start..w.end], w.text);
+        }
+    }
+
+    #[test]
+    fn graphemes_agree_with_the_grapheme_count() {
+        for text in ["", "hello", "日本語", "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}"] {
+            assert_eq!(graphemes(text).len(), grapheme_count(text));
+            assert_eq!(graphemes(text).concat(), text);
         }
     }
 

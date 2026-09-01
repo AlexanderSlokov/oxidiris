@@ -12,7 +12,9 @@ use thiserror::Error;
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DecodeError {
     /// The input looks like a binary file rather than a document.
-    #[error("input appears to be binary (found {nul_bytes} NUL bytes in the first {scanned} bytes)")]
+    #[error(
+        "input appears to be binary (found {nul_bytes} NUL bytes in the first {scanned} bytes)"
+    )]
     Binary {
         /// How many NUL bytes were seen.
         nul_bytes: usize,

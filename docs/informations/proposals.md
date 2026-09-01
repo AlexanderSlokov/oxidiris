@@ -392,8 +392,8 @@ File / stdin / URL
 [ Segmenter ]                  ← unicode-segmentation + normalization
       │
       ▼
-[ Vec<Token> ]                  { text, orp_index, display_width,
-      │                           duration_ms, kind, block_id, byte_span }
+[ Vec<Token> ]                  { text, orp_index, display_width, orp_offset,
+      │                           weight, pause_ms, kind, block_id, byte_span }
       ▼
 [ Player (state machine) ]      con trỏ + đồng hồ + WPM
       │
@@ -403,6 +403,16 @@ File / stdin / URL
 
 `Token` giữ `byte_span` trỏ ngược về văn bản gốc — đây là thứ cho phép Bảng Toàn Văn highlight
 đúng từ đang đọc và cho phép Review Mode tái dựng nguyên đoạn.
+
+> **Đính chính (ADR 001).** Bản đề xuất trước ghi `Token` có field `duration_ms`. Khi hiện thực
+> OXD-010/OXD-018 mới thấy đây là thiết kế sai: WPM thay đổi *trong lúc đọc*, nên duration cố định
+> buộc phải re-pace toàn bộ tài liệu mỗi lần bấm phím. Token giờ giữ `weight` (hệ số không phụ
+> thuộc WPM) và `pause_ms` (khoảng nghỉ cấu trúc, không co giãn theo tốc độ); duration được suy ra
+> lúc hiển thị qua `Token::duration_ms(wpm)`. Chi tiết và các phương án đã loại:
+> [`docs/decisions/token-timing.md`](../decisions/token-timing.md).
+>
+> `Token` cũng có thêm `orp_offset` (độ rộng cột của phần trước ORP) để renderer không phải tính
+> lại mỗi frame.
 
 ### 4.2. Vòng lặp sự kiện và đồng hồ
 

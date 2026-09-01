@@ -82,7 +82,7 @@ mod tests {
     #[test]
     fn nfc_and_nfd_documents_are_byte_identical() {
         let nfc = "Ti\u{1EBF}ng Vi\u{1EC7}t r\u{1EA5}t hay.\n";
-        let nfd = "Tie\u{302}\u{301}ng Vie\u{323}\u{302}t ra\u{301}\u{302}t hay.\n";
+        let nfd = "Tie\u{302}\u{301}ng Vie\u{323}\u{302}t ra\u{302}\u{301}t hay.\n";
         let a = load(nfc.as_bytes(), Some(parser::Format::PlainText)).unwrap();
         let b = load(nfd.as_bytes(), Some(parser::Format::PlainText)).unwrap();
         assert_eq!(a.source, b.source);

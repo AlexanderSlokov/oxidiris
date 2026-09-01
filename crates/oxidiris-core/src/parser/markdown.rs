@@ -17,8 +17,8 @@ struct OpenBlock {
     fragments: Vec<Fragment>,
 }
 
-#[derive(Default)]
-struct Builder {
+struct Builder<'a> {
+    source: &'a str,
     blocks: Vec<Block>,
     headings: Vec<Heading>,
     open: Option<OpenBlock>,
@@ -28,7 +28,7 @@ struct Builder {
     link_depth: usize,
 }
 
-impl Builder {
+impl<'a> Builder<'a> {
     fn open_block(&mut self, kind: BlockKind, start: usize) {
         self.close_block();
         self.open = Some(OpenBlock { kind, start, end: start, fragments: Vec::new() });
@@ -73,7 +73,24 @@ impl Builder {
         }
         let Some(open) = self.open.as_mut() else { return };
         open.end = open.end.max(span.end);
-        open.fragments.push(Fragment { text: text.to_string(), byte_span: span, kind });
+        let byte_span = tighten(self.source, span, text);
+        open.fragments.push(Fragment { text: text.to_string(), byte_span, kind });
+    }
+}
+
+/// Narrow an event's source range down to the exact bytes of its text.
+///
+/// `pulldown-cmark` reports the range of the whole construct, so an inline code span carries the
+/// surrounding backticks and a link carries its target. Leaving that slack in place would shift
+/// every per-word offset derived from the fragment, and a shifted offset can land mid-UTF-8.
+fn tighten(source: &str, span: core::ops::Range<usize>, text: &str) -> core::ops::Range<usize> {
+    let Some(slice) = source.get(span.clone()) else { return span };
+    if slice == text {
+        return span;
+    }
+    match slice.find(text) {
+        Some(pos) => span.start + pos..span.start + pos + text.len(),
+        None => span,
     }
 }
 
@@ -102,7 +119,16 @@ pub fn parse(text: &str) -> Document {
     options.insert(Options::ENABLE_FOOTNOTES);
     options.insert(Options::ENABLE_TASKLISTS);
 
-    let mut b = Builder::default();
+    let mut b = Builder {
+        source: text,
+        blocks: Vec::new(),
+        headings: Vec::new(),
+        open: None,
+        quote_depth: 0,
+        in_code_block: false,
+        in_table: false,
+        link_depth: 0,
+    };
 
     for (event, span) in Parser::new_ext(text, options).into_offset_iter() {
         match event {
@@ -139,8 +165,7 @@ pub fn parse(text: &str) -> Document {
             // Inside a list item or table cell the surrounding block already exists; a loose list
             // would otherwise split each item into a separate paragraph block.
             Event::Start(Tag::Paragraph) if b.open.is_none() => {
-                let kind =
-                    if b.quote_depth > 0 { BlockKind::Quote } else { BlockKind::Paragraph };
+                let kind = if b.quote_depth > 0 { BlockKind::Quote } else { BlockKind::Paragraph };
                 b.open_block(kind, span.start);
             }
             Event::End(TagEnd::Paragraph) => {
