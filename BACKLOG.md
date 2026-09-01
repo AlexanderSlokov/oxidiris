@@ -40,6 +40,7 @@ A task is only marked as done when ALL of the following are satisfied:
 - [ ] New tests cover new code (except purely configuration/documentation tasks)
 - [ ] Architecture constraints strictly followed: `oxidiris-core` must NOT depend on `ratatui`, `crossterm`, or any terminal I/O crate (§1.1)
 - [ ] New public APIs have rustdoc
+- [ ] User-visible changes are added to `CHANGELOG.md` under `## [Unreleased]`
 - [ ] Task-specific acceptance criteria are all checked off
 
 ### Git Conventions
@@ -72,8 +73,9 @@ Critical path: `OXD-001 → OXD-010 → OXD-011 → OXD-012 → OXD-018 → OXD-
 
 ## Current State
 
-**Milestone v0.1 (OXD-027) is complete.** Phases 0-2 are implemented, tested and verified against
-this file: `oxidiris BACKLOG.md` reads it as 5 494 tokens across 81 headings.
+**Milestone v0.1 (OXD-027) is complete and tagged `v0.1.0`.** Phases 0-2 are implemented, tested
+and verified against this file: `oxidiris BACKLOG.md` reads it as 5 494 tokens across 81 headings.
+The release notes are in [`CHANGELOG.md`](CHANGELOG.md).
 
 | | |
 |---|---|
