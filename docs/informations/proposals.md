@@ -742,6 +742,12 @@ GitHub Actions:
 `edition = "2024"` yêu cầu Rust **≥ 1.85**. Cần khai báo `rust-version` trong `Cargo.toml`, ghi rõ
 trong README, và pin một job CI ở đúng phiên bản MSRV để không vô tình phá vỡ.
 
+> **Đính chính (v0.1.0).** MSRV thực tế là **1.88**, không phải 1.85. Edition 2024 chỉ cần 1.85,
+> nhưng `ratatui` 0.30 cùng cây phụ thuộc của nó (`darling`, `instability`, `time`) yêu cầu 1.88.
+> Con số 1.85 đã được khai báo và lọt qua vì `make check` chạy trên toolchain mặc định của máy
+> dev; chỉ job MSRV trên CI mới phát hiện. Đây chính là lý do job đó tồn tại — giữ nó pin đúng
+> giá trị khai báo trong `[workspace.package]`.
+
 ### 9.5. Đóng gói & Phân phối
 
 crates.io · Homebrew tap · AUR · Nix · `cargo-binstall`.

@@ -41,7 +41,7 @@ paper carefully, and it does not advertise a WPM number as an achievement.
 cargo install --path crates/oxidiris
 ```
 
-Requires Rust 1.85 or newer.
+Requires Rust 1.88 or newer.
 
 ## Use
 
