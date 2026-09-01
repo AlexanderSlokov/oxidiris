@@ -1,0 +1,5 @@
+This document specifies an Internet standards track protocol for
+the Internet community, and requests discussion and suggestions
+for improvements.
+
+Distribution of this memo is unlimited.
