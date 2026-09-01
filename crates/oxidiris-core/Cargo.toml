@@ -1,0 +1,23 @@
+[package]
+name = "oxidiris-core"
+description = "Core RSVP/ORP text engine for Oxidiris: tokenization, optimal recognition point, pacing, and document parsing."
+license = "GPL-3.0-or-later" # TODO(DEC-01): dual-license MIT OR Apache-2.0 pending human decision
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+unicode-segmentation.workspace = true
+unicode-normalization.workspace = true
+unicode-width.workspace = true
+pulldown-cmark.workspace = true
+thiserror.workspace = true
+encoding_rs.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
