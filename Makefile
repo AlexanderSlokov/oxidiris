@@ -1,16 +1,21 @@
 # Oxidiris developer commands.
 #
-# Run `make` with no target for the list. Every target here is also what CI runs, so a green
-# `make check` locally means a green pipeline.
+# Run `make` with no target for the list.
+#
+# `make check` is the Definition of Done gate, but it runs on whatever toolchain you have active.
+# It therefore cannot catch an MSRV or licence regression on its own — `make ci` adds those. See
+# the note on `msrv` below.
 
 FILE ?= BACKLOG.md
 WPM  ?= 300
 CORE := oxidiris-core
 BIN  := oxidiris
+# Read from the manifest so the two can never drift apart.
+MSRV := $(shell grep -m1 '^rust-version' Cargo.toml | cut -d'"' -f2)
 
 .DEFAULT_GOAL := help
 .PHONY: help build release run demo dump frame test test-core test-tui fmt fmt-check lint \
-        check wasm doc doc-open bench audit clean install tree ci
+        check wasm msrv doc doc-open bench audit clean install tree ci
 
 ## help: list the available targets
 help:
@@ -78,12 +83,20 @@ lint:
 wasm:
 	cargo build -p $(CORE) --target wasm32-unknown-unknown
 
+## msrv: build with the declared minimum Rust version, the way CI does
+# v0.1.0 shipped claiming MSRV 1.85 while ratatui 0.30 needed 1.88: the default toolchain hid it
+# and only CI caught it. Run this before touching dependencies.
+msrv:
+	@rustup toolchain list | grep -q '^$(MSRV)' || \
+		{ echo "Rust $(MSRV) not installed. Run: rustup toolchain install $(MSRV)"; exit 1; }
+	cargo +$(MSRV) build --workspace
+
 ## check: the Definition of Done gate — fmt, lint, test, wasm
 check: fmt-check lint test wasm
 	@echo "OK — Definition of Done satisfied"
 
-## ci: everything check does, plus docs
-ci: check doc
+## ci: everything check does, plus docs, MSRV and the licence audit
+ci: check doc msrv audit
 	@echo "OK — full pipeline"
 
 # --- inspection -------------------------------------------------------------

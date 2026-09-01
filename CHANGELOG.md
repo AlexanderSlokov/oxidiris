@@ -8,8 +8,27 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 
 ## [Unreleased]
 
-Nothing yet. Next up is Phase 3 (`OXD-030`…`OXD-037`): modal keymap, full-text panel, outline
-sidebar and Review Mode. See [`BACKLOG.md`](BACKLOG.md).
+Next up is Phase 3 (`OXD-030`…`OXD-037`): modal keymap, full-text panel, outline sidebar and
+Review Mode. See [`BACKLOG.md`](BACKLOG.md).
+
+### Changed
+
+- **Minimum supported Rust version raised from 1.85 to 1.88.** Edition 2024 only needs 1.85, but
+  `ratatui` 0.30 and its dependency tree require 1.88, so the workspace never actually built on
+  the version v0.1.0 declared. Raising it changes the compatibility promise, which is why it
+  lands in a minor release rather than a patch. `OXD-005`, issue
+  [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4).
+
+### Fixed
+
+- `cargo-deny` no longer rejects the project's own crates. The licence allow-list is meant to keep
+  *dependencies* permissive, but cargo-deny evaluates workspace members too, so `oxidiris` and
+  `oxidiris-core` failed their own GPL-3.0-or-later policy. They are now explicit exceptions.
+- `make ci` gained the MSRV build and the licence audit, and a new `make msrv` target builds on
+  the declared minimum, reading the version out of the manifest so the two cannot drift. The
+  Makefile no longer claims that a green `make check` implies a green pipeline: it runs on
+  whatever toolchain is active and never invoked `cargo deny`, which is exactly how both defects
+  above reached a tagged release.
 
 ## [0.1.0] - 2026-09-01
 
@@ -64,11 +83,12 @@ Phases 0-2 of the backlog (`OXD-001`…`OXD-027`).
 
 **Repository**
 
-- Cargo workspace, edition 2024, MSRV 1.85.
+- Cargo workspace, edition 2024, MSRV declared as 1.85.
 - 175 tests: engine unit tests, terminal rendering tests against `TestBackend`, a fixture corpus,
   and property tests asserting the ORP invariants hold for arbitrary Unicode input.
 - CI with six jobs, including a Windows target and a `wasm32-unknown-unknown` build that enforces
   the architectural rule that `oxidiris-core` never depends on a terminal crate.
+- `cargo-deny` policy requiring permissive licences on dependencies.
 - `Makefile` with a self-documenting target list; `make check` is the Definition of Done gate.
 - `BACKLOG.md`: 56 tasks across 9 phases, each with machine-verifiable acceptance criteria.
 - Design spec in `docs/informations/proposals.md` and decision records in `docs/decisions/`.
@@ -82,6 +102,9 @@ Phases 0-2 of the backlog (`OXD-001`…`OXD-027`).
   a pipe. Proper support needs `OXD-047`.
 - RSVP removes the backward eye movements that repair a misparse, which costs comprehension on
   dense material. The tool is built for skim and triage, not for careful reading.
+- **The declared MSRV of 1.85 is wrong.** The dependency tree requires 1.88, so this release does
+  not build on the version it advertises. Use 1.88 or newer. Corrected in the next release; see
+  issue [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4).
 
 [Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/AlexanderSlokov/oxidiris/releases/tag/v0.1.0

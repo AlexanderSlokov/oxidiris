@@ -95,6 +95,11 @@ Known gaps carried forward, all deliberate and tracked:
   unimplemented in the status bar rather than failing silently
 - `-` (stdin) falls back to `--dump`: the TUI cannot read keys while stdin is a pipe. Proper
   support needs OXD-047
+- **CI is red on `main`.** The MSRV and licence jobs have failed since before the v0.1.0 tag:
+  the declared MSRV of 1.85 is impossible (ratatui 0.30 needs 1.88) and `deny.toml` rejects the
+  project's own GPL crates. `make check` detects neither. Diagnosed in **OXD-005** / issue
+  [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4), scheduled for v0.2.0 because
+  raising the MSRV is a compatibility change
 
 ---
 
@@ -106,6 +111,7 @@ Known gaps carried forward, all deliberate and tracked:
 | OXD-002 | Metadata & MSRV | 0 | S | OXD-001 | ✅ Done |
 | OXD-003 | CI baseline | 0 | M | OXD-001 | ✅ Done |
 | OXD-004 | `testdata/` corpus | 0 | S | OXD-001 | ✅ Done |
+| OXD-005 | Correct MSRV & licence policy ([#4](https://github.com/AlexanderSlokov/oxidiris/issues/4)) | 0 | S | OXD-002, OXD-003 | ⬜ Todo |
 | OXD-010 | Token & Document data types | 1 | M | OXD-001 | ✅ Done |
 | OXD-011 | Unicode Segmenter | 1 | M | OXD-010 | ✅ Done |
 | OXD-012 | ORP Algorithm | 1 | M | OXD-011 | ✅ Done |
@@ -130,7 +136,7 @@ Known gaps carried forward, all deliberate and tracked:
 | OXD-034 | Review Mode | 3 | M | OXD-031 | ⬜ Todo |
 | OXD-035 | Ramp-up on resume | 3 | S | OXD-018 | ⬜ Todo |
 | OXD-036 | TUI Snapshot test | 3 | M | OXD-023 | ⬜ Todo |
-| OXD-037 | Milestone v0.2 | 3 | S | OXD-030…036 | ⬜ Todo |
+| OXD-037 | Milestone v0.2 | 3 | S | OXD-005, OXD-030…036 | ⬜ Todo |
 | OXD-040 | Theme system | 4 | M | OXD-022 | ⬜ Todo |
 | OXD-041 | TOML config file | 4 | M | OXD-020 | ⬜ Todo |
 | OXD-042 | Custom keybindings | 4 | M | OXD-030, OXD-041 | ⬜ Todo |
@@ -194,7 +200,7 @@ Acceptance
 Phase 0 · Depends OXD-001 · Crate repo · Spec §1.2, §9.4 · Size S · Parallel-safe
 
 Scope
-- Add to `[workspace.package]`: `license`, `repository`, `readme`, `keywords`, `categories`, `authors`, `rust-version = "1.85"`.
+- Add to `[workspace.package]`: `license`, `repository`, `readme`, `keywords`, `categories`, `authors`, `rust-version`. Edition 2024 needs 1.85, but ratatui 0.30 pulls the real floor up to `1.88` — the declared value must match what CI's MSRV job builds with.
 - Create `rust-toolchain.toml` to pin the version.
 - Document MSRV in README.
 
@@ -252,6 +258,41 @@ Scope — create `testdata/` containing at minimum:
 Acceptance
 - [ ] `testdata/README.md` describes the purpose of each file
 - [ ] Unicode files are verified to be in correct normalization form (with `verify.sh` script or test)
+
+---
+
+### OXD-005 · Correct the declared MSRV and the licence policy
+
+Phase 0 · Depends OXD-002, OXD-003 · Blocks OXD-037 · Crate repo · Spec §9.3, §9.4 · Size S
+· Issue [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4)
+
+Two CI jobs have failed on `main` since before the v0.1.0 tag. Full diagnosis is in issue #4;
+the summary is that both are defects in project metadata, and `make check` cannot detect either.
+
+The MSRV bump changes the project's compatibility promise, so this ships in **v0.2.0**, not as a
+patch to v0.1.0. v0.1.0 remains tagged as released, with the incorrect claim recorded under its
+known limitations in `CHANGELOG.md`.
+
+Scope
+- `rust-version = "1.88"` in `[workspace.package]`. Edition 2024 only needs 1.85, but `ratatui`
+  0.30 and its tree (`darling`, `instability`, `time`) require 1.88, so the workspace has never
+  built on the declared value.
+- Pin the CI MSRV job to the same version, and state 1.88 in README, CHANGELOG and spec §9.4.
+- `deny.toml`: grant `GPL-3.0-or-later` to `oxidiris` and `oxidiris-core` through `exceptions`.
+  cargo-deny evaluates workspace members, so the permissive-only allow-list currently rejects the
+  project's own crates. The dependency allow-list itself must stay permissive-only.
+- Add a `make msrv` target that builds on the declared MSRV, reading the value out of the manifest
+  so the two cannot drift. Add `msrv` and `audit` to `make ci`.
+- Correct the Makefile header, which claims a green `make check` means a green pipeline. It does
+  not: `make check` runs on whatever toolchain is active and never invokes `cargo deny`.
+
+Acceptance
+- [ ] `cargo +1.88 build --workspace` succeeds
+- [ ] `make msrv` fails with a clear message when the MSRV toolchain is not installed
+- [ ] `cargo deny check` reports `licenses ok`
+- [ ] Adding a GPL dependency still fails the licence check (manually verified)
+- [ ] No file declares or promises 1.85 any more (explaining why it was wrong is fine)
+- [ ] All 6 CI jobs green on `main`
 
 ---
 

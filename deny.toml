@@ -25,6 +25,13 @@ allow = [
 ]
 confidence-threshold = 0.9
 
+# The allow list above governs *dependencies*, which must stay permissive. Oxidiris' own crates
+# are copyleft and would otherwise be rejected by their own policy.
+exceptions = [
+    { name = "oxidiris", allow = ["GPL-3.0-or-later"] },
+    { name = "oxidiris-core", allow = ["GPL-3.0-or-later"] },
+]
+
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
