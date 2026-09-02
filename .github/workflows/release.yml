@@ -1,0 +1,167 @@
+name: Release
+
+# Builds a prebuilt binary for every supported platform on a `v*` tag and attaches the archives to
+# the GitHub release. This exists so that trying Oxidiris does not require a Rust toolchain — see
+# OXD-077. `workflow_dispatch` runs the same build matrix but publishes nothing, which is how you
+# smoke-test a change to this file without cutting a tag.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # musl rather than gnu on Linux: every dependency in the tree is pure Rust, so a musl
+          # build is fully static and runs on any distribution regardless of its glibc version.
+          # A gnu build would silently bind to the builder's glibc and fail on older systems.
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            cross: false
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            cross: true
+          # macos-latest is arm64; the Apple toolchain cross-compiles to x86_64 without extra setup.
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            cross: false
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            cross: false
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            cross: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # The musl linker is not present on the GitHub runner image by default.
+      - name: Install the musl toolchain
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y musl-tools
+
+      # aarch64 musl needs a cross linker that apt does not provide in a usable form; `cross` runs
+      # the build inside an image that already has one.
+      - name: Install cross
+        if: matrix.cross
+        run: cargo install cross --locked
+
+      - name: Build
+        shell: bash
+        run: |
+          tool=cargo
+          if [ "${{ matrix.cross }}" = "true" ]; then tool=cross; fi
+          "$tool" build --release --locked -p oxidiris --target ${{ matrix.target }}
+
+      # The archive holds a top-level directory rather than a bare binary so that unpacking it in a
+      # working directory cannot overwrite the user's own README or LICENCE. GPL-3.0 requires the
+      # licence to travel with the binary, so it ships inside the archive.
+      - name: Package (tar.gz)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          stage="oxidiris-${{ matrix.target }}"
+          mkdir "$stage"
+          cp "target/${{ matrix.target }}/release/oxidiris" "$stage/"
+          cp LICENSE README.md CHANGELOG.md "$stage/"
+          tar -czf "$stage.tar.gz" "$stage"
+
+      - name: Package (zip)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $stage = "oxidiris-${{ matrix.target }}"
+          New-Item -ItemType Directory -Path $stage | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/oxidiris.exe" $stage
+          Copy-Item LICENSE, README.md, CHANGELOG.md $stage
+          Compress-Archive -Path $stage -DestinationPath "$stage.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oxidiris-${{ matrix.target }}
+          path: |
+            oxidiris-${{ matrix.target }}.tar.gz
+            oxidiris-${{ matrix.target }}.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish the release
+    needs: build
+    runs-on: ubuntu-latest
+    # workflow_dispatch exercises the matrix above but must never create a release.
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      # v0.1.0 shipped a manifest claim that did not match reality and only CI caught it. The same
+      # class of mistake — tagging v0.3.0 while Cargo.toml still says 0.2.0 — is cheap to rule out
+      # here, before any asset is published under the wrong name.
+      - name: Verify the tag matches the manifest version
+        run: |
+          version=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "tag v$tag does not match the workspace version $version in Cargo.toml"
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksum every archive
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          notes=$(cat <<'EOF'
+          Prebuilt binaries — no Rust toolchain required. See CHANGELOG.md for what changed.
+
+          **Linux (x86_64)**
+          ```sh
+          curl -fsSL https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-x86_64-unknown-linux-musl.tar.gz | tar -xz
+          sudo install -m755 oxidiris-x86_64-unknown-linux-musl/oxidiris /usr/local/bin/oxidiris
+          rm -rf oxidiris-x86_64-unknown-linux-musl
+          ```
+
+          **macOS (Apple Silicon)**
+          ```sh
+          curl -fsSL https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-aarch64-apple-darwin.tar.gz | tar -xz
+          sudo install -m755 oxidiris-aarch64-apple-darwin/oxidiris /usr/local/bin/oxidiris
+          rm -rf oxidiris-aarch64-apple-darwin
+          ```
+
+          Other platforms and the `SHA256SUMS` file are attached below.
+          EOF
+          )
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/* --clobber
+          else
+            gh release create "$tag" --title "$tag" --notes "$notes" dist/*
+          fi
