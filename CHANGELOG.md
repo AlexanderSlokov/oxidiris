@@ -11,6 +11,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 Phase 3 is not finished: `OXD-033` (`<n>%` jump) and `OXD-035` (ramp-up on resume) remain. Both are
 small; see [`BACKLOG.md`](BACKLOG.md).
 
+## [0.2.1] - 2026-09-02
+
+Packaging only — the reader itself is byte-for-byte the same as v0.2.0. Installing no longer
+requires a Rust toolchain, which was the real barrier to anyone trying this. `OXD-077` stays open
+for the distribution channels (crates.io, Homebrew tap, AUR, Nix).
+
 ### Added
 
 - **Prebuilt binaries on every tagged release.** A `Release` workflow builds `oxidiris` for Linux
@@ -159,6 +165,7 @@ Phases 0-2 of the backlog (`OXD-001`…`OXD-027`).
   not build on the version it advertises. Use 1.88 or newer. Corrected in the next release; see
   issue [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4).
 
-[Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AlexanderSlokov/oxidiris/releases/tag/v0.1.0
