@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-oxidiris-core = { path = "../oxidiris-core", version = "0.1.0" }
+oxidiris-core = { path = "../oxidiris-core", version = "0.2.0" }
 ratatui.workspace = true
 crossterm.workspace = true
 clap.workspace = true

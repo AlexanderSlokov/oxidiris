@@ -39,9 +39,9 @@ reader frame is showing. It appears whenever the window is at least 80 columns w
 
 ## Status
 
-**v0.2.0 in development** — reads `.md` and `.txt`, with the split view, outline sidebar and
-Review Mode. See [`CHANGELOG.md`](CHANGELOG.md) for what has landed and
-[`BACKLOG.md`](BACKLOG.md) for what comes next.
+**v0.2.0** — reads `.md` and `.txt`, with the split view, outline sidebar and Review Mode. See
+[`CHANGELOG.md`](CHANGELOG.md) for what this release contains and [`BACKLOG.md`](BACKLOG.md) for
+what comes next.
 
 ## What it is not
 

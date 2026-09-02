@@ -77,10 +77,11 @@ Critical path: `OXD-001 → OXD-010 → OXD-011 → OXD-012 → OXD-018 → OXD-
 and verified against this file: `oxidiris BACKLOG.md` reads it as 6 047 tokens across 83 headings.
 The release notes are in [`CHANGELOG.md`](CHANGELOG.md).
 
-**Phase 3 is under way for v0.2.** OXD-030, 031, 032, 034 and 036 are done: the split view, the
-outline sidebar, Review Mode and the modal keymap all work, and whole-screen golden frames guard
-the layout. OXD-033 is nearly free (see its card) and OXD-035 is untouched; OXD-037 tags the
-release once both land.
+**Milestone v0.2 (OXD-037) is complete and tagged `v0.2.0`.** OXD-030, 031, 032, 034 and 036
+shipped: the split view, the outline sidebar, Review Mode and the modal keymap all work, and
+whole-screen golden frames guard the layout. Two Phase 3 cards stayed open deliberately —
+OXD-033's `<n>%` jump and OXD-035's ramp-up — because holding the tag for them would also have
+held back the MSRV correction. They are the first work of v0.3.
 
 | | |
 |---|---|
@@ -143,7 +144,7 @@ Known gaps carried forward, all deliberate and tracked:
 | OXD-034 | Review Mode                                                                                | 3     | M    | OXD-031              | ✅ Done |
 | OXD-035 | Ramp-up on resume                                                                          | 3     | S    | OXD-018              | ⬜ Todo |
 | OXD-036 | TUI Snapshot test                                                                          | 3     | M    | OXD-023              | ✅ Done |
-| OXD-037 | Milestone v0.2                                                                             | 3     | S    | OXD-005, OXD-030…036 | ⬜ Todo |
+| OXD-037 | Milestone v0.2                                                                             | 3     | S    | OXD-005, OXD-030…036 | ✅ Done |
 | OXD-040 | Theme system                                                                               | 4     | M    | OXD-022              | ⬜ Todo |
 | OXD-041 | TOML config file                                                                           | 4     | M    | OXD-020              | ⬜ Todo |
 | OXD-042 | Custom keybindings                                                                         | 4     | M    | OXD-030, OXD-041     | ⬜ Todo |
@@ -796,11 +797,16 @@ Acceptance
 
 ### OXD-037 · Milestone v0.2
 
-Phase 3 · Depends OXD-030…036 · Size S
+Phase 3 · Depends OXD-005, OXD-030…036 · Size S
 
-- [ ] Read long Markdown documents, precise rewind
-- [ ] Split view, Outline, Backstep, progress bar fully operational
-- [ ] Tag `v0.2.0`
+> **Shipped without OXD-033 and OXD-035.** Both are polish on features that already work — the
+> `<n>%` jump and the ramp-up on resume — and holding the tag for them would also have held back
+> the corrected MSRV, which is the reason v0.1.0 does not build on the version it advertises.
+> They stay open in Phase 3 and land in the next release.
+
+- [x] Read long Markdown documents, precise rewind
+- [x] Split view, Outline, Backstep, progress bar fully operational
+- [x] Tag `v0.2.0`
 
 ---
 
