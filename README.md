@@ -3,15 +3,28 @@
 A Rust TUI that leverages RSVP to stream docs to your focus point — zero eye movement required.
 
 ```
-┌ BACKLOG.md ──────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│                                       ▼                                      │
-│                                      Rules                                   │
-│                                       ▲                                      │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌ BACKLOG.md ──────────────────────────┐┌ Text  ·  [Tab] to scroll ────────────┐
+│                                      ││## How to Use This Document           │
+│                                      ││                                      │
+│                                      ││### Task Pick Rules                   │
+│                                      ││                                      │
+│                                      ││1. Only pick tasks where all          │
+│                                      ││`Depends` are in the Done state. Do   │
+│                                      ││not do tasks ahead of their           │
+│                   ▼                  ││dependencies without permission.      │
+│                  ahead               ││2. Tasks labeled BLOCKED-BY-HUMAN     │
+│                   ▲                  ││require human decisions (see [Section │
+│                                      ││D](#d-decisions-requiring-human-input)│
+│                                      ││) — do not decide independently.      │
+│                                      ││3. Tasks labeled Parallel-safe can be │
+│                                      ││worked on concurrently with other     │
+│                                      ││tasks in the same phase without file  │
+│                                      ││conflicts.                            │
+│                                      ││4. Update task status in the overview │
+│                                      ││table when starting (`In progress`)   │
+└──────────────────────────────────────┘└──────────────────────────────────────┘
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│speed: 400 WPM (eff. 295)                                   word: 67/5494 (1%)│
+│speed: 400 WPM (eff. 297)                                   word: 83/6047 (1%)│
 │[Space] play   [K / Up] speed   [H / Left] seek   [?] help   [q] quit  ░░░░░░░│
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -20,10 +33,15 @@ The highlighted character is the **Optimal Recognition Point**, and it is drawn 
 terminal column for every word in the document. That is the whole idea: your eye fixates once and
 the text moves instead.
 
+The panel on the right is the other half of the idea. RSVP takes the page away, and with it your
+sense of where you are; the panel puts it back, scrolling itself and highlighting the word the
+reader frame is showing. It appears whenever the window is at least 80 columns wide.
+
 ## Status
 
-**v0.1.0** — reads `.md` and `.txt`. See [`CHANGELOG.md`](CHANGELOG.md) for what this release
-contains and [`BACKLOG.md`](BACKLOG.md) for what comes next.
+**v0.2.0 in development** — reads `.md` and `.txt`, with the split view, outline sidebar and
+Review Mode. See [`CHANGELOG.md`](CHANGELOG.md) for what has landed and
+[`BACKLOG.md`](BACKLOG.md) for what comes next.
 
 ## What it is not
 
@@ -48,12 +66,19 @@ Requires Rust 1.88 or newer.
 ```sh
 oxidiris README.md                  # read at the default 300 WPM
 oxidiris paper.md -w 450            # start faster
+oxidiris paper.md -m focus          # hide the text panel, reader frame only
 oxidiris notes.txt --pacing linear  # even timing, no punctuation pauses
 oxidiris BACKLOG.md --dump          # clean plain text on stdout
 oxidiris BACKLOG.md | less          # piping produces text, not a broken TUI
 ```
 
 ### Keys
+
+The keymap is **modal**: `Tab` moves focus to the text panel and `o` to the outline, and while a
+panel has focus `J`/`K` scroll it instead of changing speed. `Esc` always returns to reading; only
+`q` leaves the program. `?` lists the keys that work where you currently are.
+
+While reading:
 
 | Key               | Action                    |
 |-------------------|---------------------------|
@@ -64,8 +89,23 @@ oxidiris BACKLOG.md | less          # piping produces text, not a broken TUI
 | `[` / `]`         | Previous / next paragraph |
 | `g` / `G`         | Start / end               |
 | `R`               | Restart                   |
+| `Tab`             | Focus the text panel      |
+| `o`               | Outline sidebar           |
+| `v`               | Review the last paragraph |
 | `?`               | Key reference             |
 | `q`               | Quit                      |
+
+In the text panel or the outline:
+
+| Key               | Action                        |
+|-------------------|-------------------------------|
+| `K` `↑` / `J` `↓` | Scroll / move the selection   |
+| `Enter`           | Jump to the selected heading  |
+| `Tab` / `Esc`     | Back to reading               |
+
+**Review Mode** (`v`) pauses and shows the paragraph you just read, verbatim, markup included.
+RSVP works by removing the backward glance that repairs a misparse; this is that glance, on
+purpose. `Esc` closes it and picks up exactly where you were.
 
 ## Accessibility
 
@@ -77,6 +117,8 @@ Oxidiris is assistive technology, so these are requirements rather than nice-to-
   photosensitivity risk, and the reader warns once past 700 WPM (WCAG SC 2.3.1).
 - **`NO_COLOR` is honored,** and color degrades from truecolor through 256 to 16 to none.
 - **Everything is keyboard-driven.** There is no mouse-only action.
+- **The panel highlight is reversed video, not a colour.** Like the anchor, it survives a
+  monochrome terminal; a snapshot test asserts that no colour at all is emitted under `NO_COLOR`.
 - **`--dump` is the screen-reader route.** A self-rewriting frame and a screen reader cannot
   cooperate, so there is a plain-text path out.
 
@@ -102,7 +144,8 @@ The workspace is two crates:
 - **`oxidiris`** — the terminal application.
 
 Design notes live in [`docs/informations/proposals.md`](docs/informations/proposals.md); decisions
-that departed from it are in [`docs/decisions/token-timing.md`](docs/decisions/token-timing.md).
+that departed from it are recorded in [`docs/decisions/`](docs/decisions/) and back-annotated into
+the spec.
 
 ## Licence
 

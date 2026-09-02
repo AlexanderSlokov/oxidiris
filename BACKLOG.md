@@ -74,97 +74,104 @@ Critical path: `OXD-001 → OXD-010 → OXD-011 → OXD-012 → OXD-018 → OXD-
 ## Current State
 
 **Milestone v0.1 (OXD-027) is complete and tagged `v0.1.0`.** Phases 0-2 are implemented, tested
-and verified against this file: `oxidiris BACKLOG.md` reads it as 5 494 tokens across 81 headings.
+and verified against this file: `oxidiris BACKLOG.md` reads it as 6 047 tokens across 83 headings.
 The release notes are in [`CHANGELOG.md`](CHANGELOG.md).
+
+**Phase 3 is under way for v0.2.** OXD-030, 031, 032, 034 and 036 are done: the split view, the
+outline sidebar, Review Mode and the modal keymap all work, and whole-screen golden frames guard
+the layout. OXD-033 is nearly free (see its card) and OXD-035 is untouched; OXD-037 tags the
+release once both land.
 
 | | |
 |---|---|
-| Tests | 175 passing (81 engine, 81 terminal, 12 corpus, 1 doctest) |
+| Tests | 260 passing (83 engine, 163 terminal incl. 14 golden frames, 12 corpus, 2 doctests) |
 | Gate | `make check` — fmt, clippy `-D warnings`, tests, wasm constraint |
-| Verified | Anchor column fixed across the full Unicode corpus; deadline scheduler drift-free over 1 000 steps; live pty session confirms key dispatch, help popup and terminal restore |
+| Verified | Anchor column fixed across the full Unicode corpus and asserted as a golden frame; deadline scheduler drift-free over 1 000 steps; no colour reaches the terminal under `NO_COLOR`; live pty session confirms key dispatch, help popup and terminal restore |
 
 Deviations from the spec found during implementation are recorded in `docs/decisions/` and
 back-annotated into the spec, per the note at the bottom of this file. So far: ADR 001
-(`token-timing.md`), which replaced `Token::duration_ms` with a WPM-independent weight.
+(`token-timing.md`), which replaced `Token::duration_ms` with a WPM-independent weight; ADR 002
+(`split-view-layout.md`), which moved the status block out of the left column and made the panel a
+width decision rather than a size-class one.
 
 Known gaps carried forward, all deliberate and tracked:
 
-- Split view, outline and search are Phase 3-4 (OXD-031, OXD-032, OXD-043)
+- Search is Phase 4 (OXD-043)
 - CJK still splits on whitespace only — blocked on **DEC-02**, not papered over
 - `--theme`, `--chunk`, `--start`, `--no-resume`, `--config` parse but report themselves as
   unimplemented in the status bar rather than failing silently
 - `-` (stdin) falls back to `--dump`: the TUI cannot read keys while stdin is a pipe. Proper
   support needs OXD-047
-- **CI is red on `main`.** The MSRV and licence jobs have failed since before the v0.1.0 tag:
-  the declared MSRV of 1.85 is impossible (ratatui 0.30 needs 1.88) and `deny.toml` rejects the
-  project's own GPL crates. `make check` detects neither. Diagnosed in **OXD-005** / issue
-  [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4), scheduled for v0.2.0 because
-  raising the MSRV is a compatibility change
+- **v0.1.0 as tagged does not build on the MSRV it declares.** It advertises 1.85; ratatui 0.30
+  needs 1.88. Fixed on `main` by **OXD-005** (issue
+  [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4)), which turned CI green again, but
+  the published tag keeps the wrong claim — it is recorded under that release's known limitations
+  in `CHANGELOG.md` and corrected in v0.2.0
 
 ---
 
 ## Overview Table
 
-| ID | Task | Phase | Size | Depends | Status |
-|---|---|---|---|---|---|
-| OXD-001 | Split Cargo workspace | 0 | M | — | ✅ Done |
-| OXD-002 | Metadata & MSRV | 0 | S | OXD-001 | ✅ Done |
-| OXD-003 | CI baseline | 0 | M | OXD-001 | ✅ Done |
-| OXD-004 | `testdata/` corpus | 0 | S | OXD-001 | ✅ Done |
-| OXD-005 | Correct MSRV & licence policy ([#4](https://github.com/AlexanderSlokov/oxidiris/issues/4)) | 0 | S | OXD-002, OXD-003 | ⬜ Todo |
-| OXD-010 | Token & Document data types | 1 | M | OXD-001 | ✅ Done |
-| OXD-011 | Unicode Segmenter | 1 | M | OXD-010 | ✅ Done |
-| OXD-012 | ORP Algorithm | 1 | M | OXD-011 | ✅ Done |
-| OXD-013 | Pacing Engine | 1 | M | OXD-010 | ✅ Done |
-| OXD-014 | Sentence boundary heuristic | 1 | S | OXD-013 | ✅ Done |
-| OXD-015 | Encoding Detection | 1 | S | OXD-001 | ✅ Done |
-| OXD-016 | Plain Text Parser | 1 | M | OXD-010 | ✅ Done |
-| OXD-017 | Markdown Parser | 1 | L | OXD-016 | ✅ Done |
-| OXD-018 | Player state machine | 1 | L | OXD-012, OXD-013 | ✅ Done |
-| OXD-020 | CLI Framework (clap) | 2 | M | OXD-001 | ✅ Done |
-| OXD-021 | Event loop + deadline clock | 2 | L | OXD-018 | ✅ Done |
-| OXD-022 | Terminal capability detection | 2 | M | OXD-020 | ✅ Done |
-| OXD-023 | RSVP Widget (anchor column) | 2 | L | OXD-021, OXD-022 | ✅ Done |
-| OXD-024 | Status bar & progress bar | 2 | S | OXD-023 | ✅ Done |
-| OXD-025 | Help popup `?` | 2 | S | OXD-023 | ✅ Done |
-| OXD-026 | `--dump` mode | 2 | S | OXD-017, OXD-020 | ✅ Done |
-| OXD-027 | Milestone v0.1 | 2 | S | OXD-023…026 | ✅ Done |
-| OXD-030 | Modal keymap system | 3 | M | OXD-021 | ⬜ Todo |
-| OXD-031 | Full-Text Panel + highlight | 3 | L | OXD-030 | ⬜ Todo |
-| OXD-032 | Outline / TOC Sidebar | 3 | M | OXD-031 | ⬜ Todo |
-| OXD-033 | Backstep, Skip, paragraph jump | 3 | M | OXD-030 | ⬜ Todo |
-| OXD-034 | Review Mode | 3 | M | OXD-031 | ⬜ Todo |
-| OXD-035 | Ramp-up on resume | 3 | S | OXD-018 | ⬜ Todo |
-| OXD-036 | TUI Snapshot test | 3 | M | OXD-023 | ⬜ Todo |
-| OXD-037 | Milestone v0.2 | 3 | S | OXD-005, OXD-030…036 | ⬜ Todo |
-| OXD-040 | Theme system | 4 | M | OXD-022 | ⬜ Todo |
-| OXD-041 | TOML config file | 4 | M | OXD-020 | ⬜ Todo |
-| OXD-042 | Custom keybindings | 4 | M | OXD-030, OXD-041 | ⬜ Todo |
-| OXD-043 | Search `/` | 4 | M | OXD-031 | ⬜ Todo |
-| OXD-044 | Bookmarks | 4 | S | OXD-033 | ⬜ Todo |
-| OXD-045 | History & auto-resume | 4 | M | OXD-044 | ⬜ Todo |
-| OXD-046 | Chunking mode | 4 | M | OXD-012 | ⬜ Todo |
-| OXD-047 | Read from stdin | 4 | S | OXD-020 | ⬜ Todo |
-| OXD-048 | Milestone v0.3 | 4 | S | OXD-040…047 | ⬜ Todo |
-| OXD-050 | LaTeX Parser | 5 | L | OXD-017 | ⬜ Todo |
-| OXD-051 | Formula display strategy | 5 | M | OXD-050 | ⬜ Todo |
-| OXD-052 | Typst Parser | 5 | M | OXD-051 | ⬜ Todo |
-| OXD-060 | Spike: PDF extraction | 6 | M | OXD-017 | ⬜ Todo |
-| OXD-061 | PDF De-columnizing | 6 | XL | OXD-060 | ⬜ Todo |
-| OXD-062 | Lazy parsing & cache | 6 | L | OXD-018 | ⬜ Todo |
-| OXD-070 | EPUB Parser | 7 | L | OXD-062 | ⬜ Todo |
-| OXD-071 | HTML / Readability Parser | 7 | M | OXD-017 | ⬜ Todo |
-| OXD-072 | `criterion` Benchmark | 7 | S | OXD-017 | ⬜ Todo |
-| OXD-073 | Parser Fuzzing | 7 | M | OXD-017 | ⬜ Todo |
-| OXD-074 | Accessibility (a11y) audit | 7 | M | OXD-040 | ⬜ Todo |
-| OXD-075 | Rewrite README + demo | 7 | M | OXD-027 | ⬜ Todo |
-| OXD-076 | Project documentation | 7 | S | — | ⬜ Todo |
-| OXD-077 | Packaging & distribution | 7 | M | OXD-003 | ⬜ Todo |
-| OXD-078 | Milestone v1.0 | 7 | S | OXD-070…077 | ⬜ Todo |
-| OXD-080 | WebAssembly Bindings | 8 | L | OXD-018 | ⬜ Todo |
-| OXD-081 | Interactive landing page | 8 | L | OXD-080 | ⬜ Todo |
-| OXD-082 | Neovim Plugin | 8 | XL | OXD-078 | ⬜ Todo |
-| OXD-083 | VS Code Extension | 8 | XL | OXD-080 | ⬜ Todo |
+| ID      | Task                                                                                       | Phase | Size | Depends              | Status  |
+|---------|--------------------------------------------------------------------------------------------|-------|------|----------------------|---------|
+| OXD-001 | Split Cargo workspace                                                                      | 0     | M    | —                    | ✅ Done |
+| OXD-002 | Metadata & MSRV                                                                            | 0     | S    | OXD-001              | ✅ Done |
+| OXD-003 | CI baseline                                                                                | 0     | M    | OXD-001              | ✅ Done |
+| OXD-004 | `testdata/` corpus                                                                         | 0     | S    | OXD-001              | ✅ Done |
+| OXD-005 | Correct MSRV & licence policy ([#4](https://github.com/AlexanderSlokov/oxidiris/issues/4)) | 0     | S    | OXD-002, OXD-003     | ✅ Done |
+| OXD-010 | Token & Document data types                                                                | 1     | M    | OXD-001              | ✅ Done |
+| OXD-011 | Unicode Segmenter                                                                          | 1     | M    | OXD-010              | ✅ Done |
+| OXD-012 | ORP Algorithm                                                                              | 1     | M    | OXD-011              | ✅ Done |
+| OXD-013 | Pacing Engine                                                                              | 1     | M    | OXD-010              | ✅ Done |
+| OXD-014 | Sentence boundary heuristic                                                                | 1     | S    | OXD-013              | ✅ Done |
+| OXD-015 | Encoding Detection                                                                         | 1     | S    | OXD-001              | ✅ Done |
+| OXD-016 | Plain Text Parser                                                                          | 1     | M    | OXD-010              | ✅ Done |
+| OXD-017 | Markdown Parser                                                                            | 1     | L    | OXD-016              | ✅ Done |
+| OXD-018 | Player state machine                                                                       | 1     | L    | OXD-012, OXD-013     | ✅ Done |
+| OXD-020 | CLI Framework (clap)                                                                       | 2     | M    | OXD-001              | ✅ Done |
+| OXD-021 | Event loop + deadline clock                                                                | 2     | L    | OXD-018              | ✅ Done |
+| OXD-022 | Terminal capability detection                                                              | 2     | M    | OXD-020              | ✅ Done |
+| OXD-023 | RSVP Widget (anchor column)                                                                | 2     | L    | OXD-021, OXD-022     | ✅ Done |
+| OXD-024 | Status bar & progress bar                                                                  | 2     | S    | OXD-023              | ✅ Done |
+| OXD-025 | Help popup `?`                                                                             | 2     | S    | OXD-023              | ✅ Done |
+| OXD-026 | `--dump` mode                                                                              | 2     | S    | OXD-017, OXD-020     | ✅ Done |
+| OXD-027 | Milestone v0.1                                                                             | 2     | S    | OXD-023…026          | ✅ Done |
+| OXD-030 | Modal keymap system                                                                        | 3     | M    | OXD-021              | ✅ Done |
+| OXD-031 | Full-Text Panel + highlight                                                                | 3     | L    | OXD-030              | ✅ Done |
+| OXD-032 | Outline / TOC Sidebar                                                                      | 3     | M    | OXD-031              | ✅ Done |
+| OXD-033 | Backstep, Skip, paragraph jump (only `<n>%` left)                                          | 3     | S    | OXD-030              | ⬜ Todo |
+| OXD-034 | Review Mode                                                                                | 3     | M    | OXD-031              | ✅ Done |
+| OXD-035 | Ramp-up on resume                                                                          | 3     | S    | OXD-018              | ⬜ Todo |
+| OXD-036 | TUI Snapshot test                                                                          | 3     | M    | OXD-023              | ✅ Done |
+| OXD-037 | Milestone v0.2                                                                             | 3     | S    | OXD-005, OXD-030…036 | ⬜ Todo |
+| OXD-040 | Theme system                                                                               | 4     | M    | OXD-022              | ⬜ Todo |
+| OXD-041 | TOML config file                                                                           | 4     | M    | OXD-020              | ⬜ Todo |
+| OXD-042 | Custom keybindings                                                                         | 4     | M    | OXD-030, OXD-041     | ⬜ Todo |
+| OXD-043 | Search `/`                                                                                 | 4     | M    | OXD-031              | ⬜ Todo |
+| OXD-044 | Bookmarks                                                                                  | 4     | S    | OXD-033              | ⬜ Todo |
+| OXD-045 | History & auto-resume                                                                      | 4     | M    | OXD-044              | ⬜ Todo |
+| OXD-046 | Chunking mode                                                                              | 4     | M    | OXD-012              | ⬜ Todo |
+| OXD-047 | Read from stdin                                                                            | 4     | S    | OXD-020              | ⬜ Todo |
+| OXD-048 | Milestone v0.3                                                                             | 4     | S    | OXD-040…047          | ⬜ Todo |
+| OXD-050 | LaTeX Parser                                                                               | 5     | L    | OXD-017              | ⬜ Todo |
+| OXD-051 | Formula display strategy                                                                   | 5     | M    | OXD-050              | ⬜ Todo |
+| OXD-052 | Typst Parser                                                                               | 5     | M    | OXD-051              | ⬜ Todo |
+| OXD-060 | Spike: PDF extraction                                                                      | 6     | M    | OXD-017              | ⬜ Todo |
+| OXD-061 | PDF De-columnizing                                                                         | 6     | XL   | OXD-060              | ⬜ Todo |
+| OXD-062 | Lazy parsing & cache                                                                       | 6     | L    | OXD-018              | ⬜ Todo |
+| OXD-070 | EPUB Parser                                                                                | 7     | L    | OXD-062              | ⬜ Todo |
+| OXD-071 | HTML / Readability Parser                                                                  | 7     | M    | OXD-017              | ⬜ Todo |
+| OXD-072 | `criterion` Benchmark                                                                      | 7     | S    | OXD-017              | ⬜ Todo |
+| OXD-073 | Parser Fuzzing                                                                             | 7     | M    | OXD-017              | ⬜ Todo |
+| OXD-074 | Accessibility (a11y) audit                                                                 | 7     | M    | OXD-040              | ⬜ Todo |
+| OXD-075 | Rewrite README + demo                                                                      | 7     | M    | OXD-027              | ⬜ Todo |
+| OXD-076 | Project documentation                                                                      | 7     | S    | —                    | ⬜ Todo |
+| OXD-077 | Packaging & distribution                                                                   | 7     | M    | OXD-003              | ⬜ Todo |
+| OXD-078 | Milestone v1.0                                                                             | 7     | S    | OXD-070…077          | ⬜ Todo |
+| OXD-080 | WebAssembly Bindings                                                                       | 8     | L    | OXD-018              | ⬜ Todo |
+| OXD-081 | Interactive landing page                                                                   | 8     | L    | OXD-080              | ⬜ Todo |
+| OXD-082 | Neovim Plugin                                                                              | 8     | XL   | OXD-078              | ⬜ Todo |
+| OXD-083 | VS Code Extension                                                                          | 8     | XL   | OXD-080              | ⬜ Todo |
 
 ---
 
@@ -667,9 +674,10 @@ Scope
 - Explicit distinction between `Esc` (exit sub-mode) and `q` (quit app) per §7.2 note.
 
 Acceptance
-- [ ] `J` changes WPM in Reader, scrolls in Browser
-- [ ] `Esc` in Browser returns to Reader, does not quit app
-- [ ] Keymap data structure enumerable for help popup
+- [x] `J` changes WPM in Reader, scrolls in Browser
+- [x] `Esc` in Browser returns to Reader, does not quit app
+- [x] Keymap data structure enumerable for help popup — `bindings_for(mode)` drives the help
+      popup and the status hints, so neither can advertise a key that does something else here
 
 ---
 
@@ -683,10 +691,18 @@ Scope
 - Highlight current token based on `byte_span` — primary context anchor preventing disorientation.
 - `Tab` switches focus; manual scrolling enabled when paused.
 
+> The panel renders `Document::source`, markup included, because that is what `byte_span` indexes.
+> Rendering stripped block text would need a second mapping that could disagree with the first, and
+> a highlight on the wrong word is worse than no panel. The §5 mockup draws it this way too.
+>
+> Known limit, by design: for Markdown escapes and character entities the fragment's text is not a
+> verbatim copy of its source range, and `pacing::word_span` falls back to highlighting the whole
+> fragment. A slightly coarse highlight beats a range that panics on slicing.
+
 Acceptance
-- [ ] Highlight strictly matches currently displayed token in left panel
-- [ ] Auto-scroll keeps current token within visible viewport
-- [ ] Auto-hide right panel when terminal < 80 columns (§3.4.4)
+- [x] Highlight strictly matches currently displayed token in left panel
+- [x] Auto-scroll keeps current token within visible viewport
+- [x] Auto-hide right panel when terminal < 80 columns (§3.4.4) — on width alone, see ADR 002
 
 ---
 
@@ -700,9 +716,9 @@ Scope
 - Highlight heading containing active reading position.
 
 Acceptance
-- [ ] `Enter` jumps to exact location and returns to Reader mode
-- [ ] Document without headings → friendly empty state notice, no confusing empty panel
-- [ ] Nested heading levels rendered with proper indentation
+- [x] `Enter` jumps to exact location and returns to Reader mode
+- [x] Document without headings → friendly empty state notice, no confusing empty panel
+- [x] Nested heading levels rendered with proper indentation
 
 ---
 
@@ -714,10 +730,17 @@ Scope — `H`/`←` back 5 words · `L`/`→` forward 5 words · `[`/`]` jump pa
 
 > Note: Paragraph boundary defined by parser `block_id`, not text heuristics — LaTeX/PDF paragraph boundaries differ significantly from Markdown (§3.3).
 
+> **Mostly shipped in v0.1.0.** Every binding above except `<n>%` is already in
+> `keymap.rs::BINDINGS` and backed by `Player::{seek_words, seek_blocks, goto_start, goto_end}`;
+> `Player::seek_ratio` exists too. What remains is the numeric prefix — reading digits before `%`
+> needs a pending-input state, which is why this now sits after OXD-030 rather than beside it.
+> Real remaining size: **S**. Wiring `--start <n%|word:n>` belongs here too.
+
 Acceptance
-- [ ] Seeking at doc boundaries cleanly clamped
-- [ ] Paragraph jumps use `block_id`, functioning across `.txt` and `.md`
+- [x] Seeking at doc boundaries cleanly clamped
+- [x] Paragraph jumps use `block_id`, functioning across `.txt` and `.md`
 - [ ] Entering `50%` jumps precisely to midpoint of document
+- [ ] `--start 50%` starts there and stops reporting itself as unimplemented
 
 ---
 
@@ -732,9 +755,10 @@ Scope
 - Auto-pause when opened; `Esc` closes and resumes reading.
 
 Acceptance
-- [ ] Displays exact original paragraph text, including stripped markup
-- [ ] Paragraphs longer than screen are scrollable
-- [ ] Closing resumes playback at exact previous position
+- [x] Displays exact original paragraph text, including stripped markup
+- [x] Paragraphs longer than screen are scrollable
+- [x] Closing resumes playback at exact previous position — and a finished document is not
+      silently restarted by closing the popup
 
 ---
 
@@ -758,10 +782,15 @@ Phase 3 · Depends OXD-023 · Crate bin · Spec §9.1 · Size M · Parallel-safe
 
 Scope — `ratatui::backend::TestBackend` + `insta`, covering: focus mode, split view, help popup, outline, terminal sizes 80×24 / 200×50 / 40×10, color and `NO_COLOR`.
 
+> Two grids are captured per frame: the characters, and a style grid that records how each cell is
+> emphasised. The §3.4.1 guarantees are about attributes, so an ORP that quietly stopped being bold
+> would pass a text-only snapshot.
+
 Acceptance
-- [ ] Snapshots deterministic across test runs
-- [ ] Test confirms ORP column invariant across varying word lengths
-- [ ] Runs in CI across all 3 OS platforms
+- [x] Snapshots deterministic across test runs
+- [x] Test confirms ORP column invariant across varying word lengths
+- [ ] Runs in CI across all 3 OS platforms — pending the first CI run on the Phase 3 PR.
+      `.gitattributes` pins `*.snap` to LF so a Windows checkout cannot fail them spuriously
 
 ---
 

@@ -486,6 +486,22 @@ terminal không phải TTY (khi đó nên tự chuyển sang `--dump`).
   từ chứ không phải dòng.
 * Khi terminal < 80 cột: bỏ panel phải, tự chuyển `focus` mode (Chương 3.4.4).
 
+> **Đính chính (v0.2.0).** Khi hiện thực OXD-031, hai điểm trong mockup trên đã phải đổi.
+>
+> 1. **Khối trạng thái chạy hết chiều ngang cửa sổ**, nằm dưới cả hai cột, chứ không nằm trong cột
+>    trái như hình vẽ. Ở mức tối thiểu 80 cột thì cột trái chỉ rộng 38 ô bên trong khung — không đủ
+>    cho dòng gợi ý phím (69 ô, sinh ra từ bảng keymap) lẫn thanh tiến trình.
+> 2. **Việc ẩn/hiện panel chỉ căn cứ vào chiều rộng**, đúng như câu trên viết, chứ không căn cứ vào
+>    `size_class` (vốn gộp cả chiều cao). Cửa sổ 100x20 vẫn đủ rộng cho hai cột.
+>
+> Ngoài ra, dưới 80 cột thì sidebar Outline (Chương 3.3) được vẽ đè lên khung đọc thay vì thành một
+> cột riêng: không còn chỗ cho cột thứ ba. Chi tiết và lý do trong
+> [`docs/decisions/split-view-layout.md`](../decisions/split-view-layout.md) (ADR 002).
+>
+> Điểm mockup vẽ đúng và đã giữ nguyên: panel phải hiển thị **văn bản nguồn kèm markup**
+> (`## Tính năng chính`), không phải văn bản đã bóc markup. Vì `byte_span` trỏ vào `Document::source`,
+> render đúng nguồn là cách duy nhất để highlight không bao giờ lệch từ.
+
 ---
 
 ## 6. Hệ thống Lệnh đầu vào (CLI Flags & Options)
