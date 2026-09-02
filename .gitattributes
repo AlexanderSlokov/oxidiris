@@ -1,2 +1,3 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Golden frames are compared byte for byte. A CRLF checkout on Windows would fail every
+# snapshot test in CI for reasons that have nothing to do with the code (OXD-036).
+*.snap text eol=lf

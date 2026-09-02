@@ -10,7 +10,7 @@ use oxidiris_core::pacing::{DEFAULT_WPM, MAX_WPM, MIN_WPM};
 /// Display mode for the reader.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum Mode {
-    /// Split screen: RSVP frame plus the full text panel. Arrives in v0.2 (OXD-031).
+    /// Split screen: RSVP frame plus the full text panel.
     Tui,
     /// Minimal: only the RSVP frame, centred.
     Focus,
@@ -54,11 +54,13 @@ EXAMPLES:
   oxidiris README.md                 Read a file at the default 300 WPM
   oxidiris paper.md -w 450           Start at 450 words per minute
   oxidiris notes.txt --pacing linear Disable punctuation-aware pauses
+  oxidiris paper.md -m focus         Hide the text panel, RSVP frame only
   oxidiris BACKLOG.md --dump         Print clean plain text and exit
   oxidiris BACKLOG.md | less         Piping also produces plain text
 
 KEYS:
-  Space play/pause   J/K speed   H/L seek   [/] paragraph   ? help   q quit"
+  Space play/pause   J/K speed   H/L seek   [/] paragraph   Tab panel
+  o outline   v review   ? help   q quit"
 )]
 pub struct Cli {
     /// Document to read. Use `-` to read from standard input.
@@ -69,7 +71,10 @@ pub struct Cli {
     pub wpm: u16,
 
     /// Display mode.
-    #[arg(short = 'm', long, value_enum, default_value_t = Mode::Focus)]
+    ///
+    /// `tui` is the default now that the full-text panel exists (OXD-031); it degrades to `focus`
+    /// on its own below 80 columns, so the default is safe on any terminal.
+    #[arg(short = 'm', long, value_enum, default_value_t = Mode::Tui)]
     pub mode: Mode,
 
     /// Pacing strategy.
@@ -120,9 +125,6 @@ impl Cli {
     /// Flags that parse but are not wired up yet, so the reader can say so instead of pretending.
     pub fn unimplemented_flags(&self) -> Vec<&'static str> {
         let mut v = Vec::new();
-        if self.mode == Mode::Tui {
-            v.push("--mode tui (split view lands in v0.2, OXD-031)");
-        }
         if self.theme.is_some() {
             v.push("--theme (OXD-040)");
         }
@@ -156,7 +158,7 @@ mod tests {
     fn defaults_are_the_safe_ones() {
         let cli = Cli::try_parse_from(["oxidiris", "a.md"]).unwrap();
         assert_eq!(cli.wpm, DEFAULT_WPM);
-        assert_eq!(cli.mode, Mode::Focus);
+        assert_eq!(cli.mode, Mode::Tui, "the split view is the default layout since v0.2");
         assert_eq!(cli.pacing, Pacing::Natural);
         assert!(!cli.dump);
     }

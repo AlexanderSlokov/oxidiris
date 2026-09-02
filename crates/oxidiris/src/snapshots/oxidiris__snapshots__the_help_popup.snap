@@ -1,0 +1,28 @@
+---
+source: crates/oxidiris/src/snapshots.rs
+expression: "text_grid(&a, 80, 24)"
+---
+┌ oxidiris.md ───┌ Keys · READER · [?] or [Esc] to close ─────┐oll ────────────┐
+│                │Playback                                    │                │
+│                │  Space     Play / pause                    │                │
+│                │  R         Restart from the beginning      │ut moving your  │
+│                │                                            │ragraph long    │
+│                │Speed                                       │                │
+│                │  K / Up    Faster (+25 WPM)                │                │
+│                │  J / Down  Slower (-25 WPM)                │                │
+│                │  +         Faster, fine (+5 WPM)           │                │
+│                │  -         Slower, fine (-5 WPM)           │es              │
+│                │                                            │ panel          │
+│                │Navigation                                  │                │
+│                │  H / Left  Back 5 words                    │                │
+│                │  L / Right Forward 5 words                 │;               │
+│                │  [         Previous paragraph              │                │
+│                │  ]         Next paragraph                  │                │
+│                │  g         Go to start                     │                │
+│                │  G         Go to end                       │                │
+│                │                                            │ot a            │
+└────────────────│Context                                     │────────────────┘
+┌────────────────│  Tab       Focus the text panel            │────────────────┐
+│speed: 300 WPM (│  o         Outline sidebar                 │ord: 10/42 (22%)│
+│[Space] play   [│  v         Review the paragraph just read  │q] quit  ██░░░░░│
+└────────────────└────────────────────────────────────────────┘────────────────┘

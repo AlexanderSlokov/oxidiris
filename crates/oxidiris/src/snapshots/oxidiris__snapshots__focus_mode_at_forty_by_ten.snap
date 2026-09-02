@@ -1,0 +1,14 @@
+---
+source: crates/oxidiris/src/snapshots.rs
+expression: "text_grid(&a, 40, 10)"
+---
+┌ oxidiris.md ─────────────────────────┐
+│                   ▼                  │
+│                  needs               │
+│                   ▲                  │
+│                                      │
+└──────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│speed: 300 WPM (eff. 210) word: 10/42 │
+│[Space] play   [K / Up] speed   [H / L│
+└──────────────────────────────────────┘

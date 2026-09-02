@@ -1,0 +1,28 @@
+---
+source: crates/oxidiris/src/snapshots.rs
+expression: "text_grid(&a, 80, 24)"
+---
+┌ oxidiris.md ─────────────────────────┐┌ Text  ·  [Tab] to scroll ────────────┐
+│                                      ││# Oxidiris                            │
+│                                      ││                                      │
+│                                      ││Reading at speed without moving your  │
+│         ┌ Review  ·  [Esc] resume ─────────────────────────────────┐ long    │
+│         │Reading at speed without moving your eyes, which needs a  │         │
+│         │paragraph long enough to wrap.                            │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         │                                                          │         │
+│         └──────────────────────────────────────────────────────────┘         │
+└──────────────────────────────────────┘└──────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│speed: 300 WPM (eff. 210)                                    word: 10/42 (22%)│
+│[Space] play   [K / Up] speed   [H / Left] seek   [?] help   [q] quit  ██░░░░░│
+└──────────────────────────────────────────────────────────────────────────────┘
