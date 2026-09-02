@@ -1139,12 +1139,31 @@ Acceptance
 
 Phase 7 · Depends OXD-003 · Crate repo · Spec §9.5 · Size M
 
-Scope — `cargo-dist` for cross-platform binary builds · publish to crates.io · Homebrew tap · AUR · Nix flake · `cargo-binstall`.
+Scope — cross-platform binary builds · publish to crates.io · Homebrew tap · AUR · Nix flake · `cargo-binstall`.
 
 Acceptance
-- [ ] Automated release workflow on tag push
-- [ ] Binaries built for Linux (x86_64, aarch64), macOS (x86_64, aarch64), Windows (x86_64)
+- [x] Automated release workflow on tag push
+- [x] Binaries built for Linux (x86_64, aarch64), macOS (x86_64, aarch64), Windows (x86_64)
 - [ ] `cargo install oxidiris` works from crates.io
+- [ ] Homebrew tap serving the release archives
+- [ ] AUR, Nix flake, `cargo-binstall`
+
+Partially done. `.github/workflows/release.yml` covers the first two criteria; the task stays Todo
+until distribution channels exist.
+
+The binary builds are hand-rolled rather than delegated to `cargo-dist`, which the original scope
+named. Reasons: the matrix is five targets of a single binary with no C dependencies, so the
+generated config would be larger than the workflow it replaces; and the archive names are load
+bearing for the README install commands and the future Homebrew formula, so they are worth owning
+directly. Revisit if the target list grows or an installer script is wanted.
+
+Linux targets musl, not gnu. Every dependency in the tree is pure Rust, so the musl build is fully
+static (verified: 2.2 MB x86_64, 1.9 MB aarch64, `ldd` reports "statically linked") and runs on any
+distribution. A gnu build would bind to the runner's glibc and fail on older systems.
+
+Docker was considered as the first distribution channel and rejected. Oxidiris is a full-screen TUI
+that reads a file from the user's working directory, so a container adds TTY and volume-mount
+friction to every invocation, and on macOS it would demand a VM to run a 2 MB static binary.
 
 ---
 

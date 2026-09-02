@@ -11,6 +11,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 Phase 3 is not finished: `OXD-033` (`<n>%` jump) and `OXD-035` (ramp-up on resume) remain. Both are
 small; see [`BACKLOG.md`](BACKLOG.md).
 
+### Added
+
+- **Prebuilt binaries on every tagged release.** A `Release` workflow builds `oxidiris` for Linux
+  (x86_64, aarch64), macOS (x86_64, aarch64) and Windows (x86_64) on a `v*` tag, and attaches the
+  archives plus a `SHA256SUMS` file to the GitHub release. Trying the reader no longer requires a
+  Rust toolchain. Part of `OXD-077`.
+- The Linux builds target musl and are statically linked, so one archive runs on any distribution
+  rather than binding to the builder's glibc.
+- The release job refuses to publish when the tag does not match the workspace version in
+  `Cargo.toml`. v0.1.0 shipped a manifest claim that did not match reality; this makes the
+  equivalent mistake impossible to tag.
+- README now carries a complete copy-paste install block per platform, plus the `cargo install
+  --git` route for people who already have Rust.
+
 ## [0.2.0] - 2026-09-02
 
 Phase 3 lands the context features (`OXD-030`…`OXD-036`). They are not extras: RSVP works by
