@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 
 ## [Unreleased]
 
+Phase 3 is not finished: `OXD-033` (`<n>%` jump) and `OXD-035` (ramp-up on resume) remain. Both are
+small; see [`BACKLOG.md`](BACKLOG.md).
+
+## [0.2.0] - 2026-09-02
+
 Phase 3 lands the context features (`OXD-030`…`OXD-036`). They are not extras: RSVP works by
 removing the reader's sense of place, and this is the half of the design that gives it back. See
 [`BACKLOG.md`](BACKLOG.md).
@@ -140,5 +145,6 @@ Phases 0-2 of the backlog (`OXD-001`…`OXD-027`).
   not build on the version it advertises. Use 1.88 or newer. Corrected in the next release; see
   issue [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4).
 
-[Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AlexanderSlokov/oxidiris/releases/tag/v0.1.0
