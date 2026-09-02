@@ -200,6 +200,34 @@ impl Player {
         }
     }
 
+    /// Move to the first token of the block with this id.
+    ///
+    /// Returns whether such a block exists in the stream. Blocks that produce no tokens — a table,
+    /// or a heading whose text was entirely markup — are absent from it, so the caller cannot
+    /// assume every block in the document is reachable.
+    ///
+    /// This is how the outline sidebar jumps to a heading (OXD-032): [`crate::Heading`] carries a
+    /// `block_id`, not a token index.
+    ///
+    /// ```
+    /// # use oxidiris_core::{PacingMode, Player, parser};
+    /// let doc = parser::parse_markdown("# One\n\nbody\n\n# Two\n\nmore\n");
+    /// let mut player = Player::from_document(&doc, 300, PacingMode::Natural);
+    /// let second = doc.headings[1].block_id;
+    /// assert!(player.seek_block_id(second));
+    /// assert_eq!(player.current().unwrap().text, "Two");
+    /// ```
+    pub fn seek_block_id(&mut self, block_id: usize) -> bool {
+        let Some(idx) = self.tokens.iter().position(|t| t.block_id == block_id) else {
+            return false;
+        };
+        self.cursor = idx;
+        if self.state == PlayState::Finished {
+            self.state = PlayState::Paused;
+        }
+        true
+    }
+
     /// Jump to a fraction of the document, `0.0..=1.0`.
     pub fn seek_ratio(&mut self, ratio: f64) {
         if self.tokens.is_empty() {
@@ -261,8 +289,29 @@ mod tests {
         p.seek_words(-10);
         p.seek_blocks(1);
         p.seek_ratio(0.5);
+        assert!(!p.seek_block_id(0));
         p.restart();
         assert!(p.current().is_none());
+    }
+
+    #[test]
+    fn seeking_to_a_block_id_lands_on_its_first_token() {
+        let mut p = player_from(DOC);
+        p.goto_end();
+        let last_block = p.current().unwrap().block_id;
+        assert!(p.seek_block_id(last_block));
+        assert_eq!(p.current().unwrap().text, "Third");
+        assert_eq!(p.state(), PlayState::Paused, "a jump out of the end must leave Finished");
+    }
+
+    /// Tables and markup-only blocks contribute no tokens, so not every block id is reachable.
+    #[test]
+    fn seeking_to_an_unknown_block_id_reports_failure_and_does_not_move() {
+        let mut p = player_from(DOC);
+        p.seek_words(3);
+        let before = p.progress().0;
+        assert!(!p.seek_block_id(9_999));
+        assert_eq!(p.progress().0, before);
     }
 
     #[test]

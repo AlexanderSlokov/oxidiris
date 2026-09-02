@@ -8,6 +8,8 @@ mod dump;
 mod event;
 mod keymap;
 mod scheduler;
+#[cfg(test)]
+mod snapshots;
 mod term;
 mod ui;
 
@@ -51,8 +53,10 @@ fn run(cli: Cli) -> Result<()> {
     }
 
     let message = build_notice(&cli, &doc);
-    let mut application = App::new(&doc, title, cli.wpm, cli.pacing.into())
+    let split = cli.mode == cli::Mode::Tui;
+    let mut application = App::new(doc, title, cli.wpm, cli.pacing.into())
         .with_detected_capabilities()
+        .with_split(split)
         .with_message(message);
 
     install_panic_hook();

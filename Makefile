@@ -15,7 +15,7 @@ MSRV := $(shell grep -m1 '^rust-version' Cargo.toml | cut -d'"' -f2)
 
 .DEFAULT_GOAL := help
 .PHONY: help build release run demo dump frame test test-core test-tui fmt fmt-check lint \
-        check wasm msrv doc doc-open bench audit clean install tree ci
+        check wasm msrv doc doc-open bench audit clean install tree ci snap
 
 ## help: list the available targets
 help:
@@ -108,6 +108,13 @@ doc:
 ## doc-open: build the API documentation and open it
 doc-open:
 	cargo doc -p $(CORE) --no-deps --open
+
+## snap: review changed golden frames (needs: cargo install cargo-insta)
+# A snapshot diff is a question, not a failure: it means the layout moved. Look before accepting.
+snap:
+	@command -v cargo-insta >/dev/null || \
+		{ echo "cargo-insta not installed. Run: cargo install cargo-insta"; exit 1; }
+	cargo insta review
 
 ## frame: print one rendered frame to stdout (visual check, no terminal needed)
 frame:

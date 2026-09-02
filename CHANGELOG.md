@@ -8,10 +8,44 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 
 ## [Unreleased]
 
-Next up is Phase 3 (`OXD-030`…`OXD-037`): modal keymap, full-text panel, outline sidebar and
-Review Mode. See [`BACKLOG.md`](BACKLOG.md).
+Phase 3 lands the context features (`OXD-030`…`OXD-036`). They are not extras: RSVP works by
+removing the reader's sense of place, and this is the half of the design that gives it back. See
+[`BACKLOG.md`](BACKLOG.md).
+
+### Added
+
+- **Full-text panel.** The document beside the reader frame, scrolling itself to follow the
+  cursor, with the word currently on screen highlighted. The highlight is driven by
+  `Token::byte_span`, so it cannot drift out of step with what is being read. Appears whenever the
+  window is at least 80 columns wide, and is the default layout now that it exists — `--mode
+  focus` still gives the bare reader frame. `OXD-031`.
+- **Outline sidebar** (`o`). The heading tree from the parser, with the section you are in marked
+  and `Enter` to jump to any of it. On windows too narrow for a third column it is drawn over the
+  reader instead. `OXD-032`.
+- **Review Mode** (`v`). Pauses and shows the paragraph just read, verbatim and markup included,
+  reconstructed from `Block::byte_span`. `Esc` closes it and resumes at the same word. This is the
+  controlled version of the backward glance RSVP removes. `OXD-034`.
+- **Modal keymap.** `Tab` moves focus to the text panel, `o` to the outline; while a panel has
+  focus `J`/`K` scroll it rather than changing speed. The key reference lists the bindings that
+  work where you currently are, and both the popup and the dispatcher still read one table.
+  `OXD-030`, resolving the conflict spec §7.1 flagged.
+- `Player::seek_block_id`, so a caller holding a `Heading` can jump to it without knowing token
+  indices.
+- Movement keys scroll an open popup instead of changing a speed the reader cannot see; the key
+  reference has been scrollable in principle since v0.1.0 but had no key bound to it.
+- **Golden-frame tests** (`OXD-036`): whole-screen snapshots at 80x24, 200x50 and 40x10, in every
+  mode, plus a style grid that asserts the ORP stays bold *and* underlined and the panel highlight
+  stays reversed with no colour emitted at all under `NO_COLOR`.
 
 ### Changed
+
+- `--mode` now defaults to `tui`. It degrades to `focus` on its own below 80 columns, so the
+  default is safe on any terminal, and `--mode tui` no longer reports itself as unimplemented.
+- The status block spans the full window width rather than sitting inside the left column as spec
+  §5 drew it, and panel visibility is decided on width alone rather than on a size class that also
+  weighed height. Both changes are recorded in
+  [`docs/decisions/split-view-layout.md`](docs/decisions/split-view-layout.md) (ADR 002) and
+  back-annotated into the spec.
 
 - **Minimum supported Rust version raised from 1.85 to 1.88.** Edition 2024 only needs 1.85, but
   `ratatui` 0.30 and its dependency tree require 1.88, so the workspace never actually built on

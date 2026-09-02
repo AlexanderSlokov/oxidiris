@@ -1,0 +1,12 @@
+---
+source: crates/oxidiris/src/snapshots.rs
+expression: frames
+---
+       needs |│                  needs               │|
+           a |│                   a                  │|
+   paragraph |│                 paragraph            │|
+        long |│                  long                │|
+      enough |│                 enough               │|
+          to |│                  to                  │|
+       wrap. |│                  wrap.               │|
+        Keys |│                  Keys                │|

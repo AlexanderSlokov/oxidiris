@@ -31,6 +31,7 @@ encoding_rs = "0.8"
 
 # --- dev ---
 proptest = "1"
+insta = "1"
 
 [profile.release]
 lto = "thin"

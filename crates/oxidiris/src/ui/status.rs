@@ -10,7 +10,7 @@ use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph};
 
-use crate::keymap::{Action, keys_for};
+use crate::keymap::{Action, Mode, keys_for};
 use crate::term::{Capabilities, ColorLevel};
 
 /// Left half of the status line: configured speed and the speed actually achieved.
@@ -42,11 +42,40 @@ pub fn progress_bar(ratio: f64, width: u16, unicode: bool) -> String {
     bar
 }
 
+/// Key hints for `mode`.
+///
+/// The hints are generated from the binding table, so a key that means something different here
+/// is advertised differently here (spec §7.1).
+pub fn hint_text(player: &Player, mode: Mode) -> String {
+    if mode.is_panel() {
+        return format!(
+            "{}   [{}] scroll   [{}] back   [{}] help   [{}] quit",
+            mode.label(),
+            keys_for(Action::ScrollDown),
+            keys_for(Action::FocusPanel),
+            keys_for(Action::ToggleHelp),
+            keys_for(Action::Quit),
+        );
+    }
+    // Deliberately no hint for Tab or o here: the line already fills an 80-column terminal, and
+    // both panels advertise themselves in their own title bar.
+    let state = if player.is_playing() { "pause" } else { "play" };
+    format!(
+        "[{}] {state}   [{}] speed   [{}] seek   [{}] help   [{}] quit",
+        keys_for(Action::TogglePlay),
+        keys_for(Action::Faster),
+        keys_for(Action::Back),
+        keys_for(Action::ToggleHelp),
+        keys_for(Action::Quit),
+    )
+}
+
 /// Render the status block into `area`.
 pub fn render(
     frame: &mut Frame,
     area: Rect,
     player: &Player,
+    mode: Mode,
     caps: Capabilities,
     message: Option<&str>,
 ) {
@@ -80,20 +109,10 @@ pub fn render(
 
     let hint = match message {
         Some(msg) => msg.to_string(),
-        None if warn => {
+        None if warn && mode == Mode::Reader => {
             format!("high speed (>{FLASH_WARNING_WPM} WPM) may be uncomfortable  ·  [?] help")
         }
-        None => {
-            let state = if player.is_playing() { "pause" } else { "play" };
-            format!(
-                "[{}] {state}   [{}] speed   [{}] seek   [{}] help   [{}] quit",
-                keys_for(Action::TogglePlay),
-                keys_for(Action::Faster),
-                keys_for(Action::Back),
-                keys_for(Action::ToggleHelp),
-                keys_for(Action::Quit),
-            )
-        }
+        None => hint_text(player, mode),
     };
 
     let bar_width = inner.width.saturating_sub(hint.chars().count() as u16 + 2);
@@ -175,7 +194,9 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(80, 6)).unwrap();
         let p = player();
         terminal
-            .draw(|frame| render(frame, frame.area(), &p, Capabilities::default(), None))
+            .draw(|frame| {
+                render(frame, frame.area(), &p, Mode::Reader, Capabilities::default(), None)
+            })
             .unwrap();
 
         let buffer = terminal.backend().buffer();
@@ -188,13 +209,37 @@ mod tests {
         assert!(rendered.contains("450 WPM"), "status line was {rendered:?}");
     }
 
+    /// A reader who has focused the panel needs to know J/K no longer touch the speed.
+    #[test]
+    fn the_hint_line_changes_with_the_mode() {
+        let p = player();
+        let reading = hint_text(&p, Mode::Reader);
+        let browsing = hint_text(&p, Mode::Browser);
+        assert!(reading.contains("speed"));
+        assert!(!browsing.contains("speed"), "got {browsing:?}");
+        assert!(browsing.contains("BROWSER"));
+        assert!(browsing.contains("scroll"));
+    }
+
+    /// OXD-024: the line must not wrap on the narrowest supported terminal.
+    #[test]
+    fn every_mode_hint_fits_an_eighty_column_terminal() {
+        let p = player();
+        for mode in [Mode::Reader, Mode::Browser, Mode::Outline] {
+            let hint = hint_text(&p, mode);
+            assert!(hint.chars().count() <= 78, "{mode:?} hint is {} chars", hint.chars().count());
+        }
+    }
+
     #[test]
     fn a_high_speed_earns_a_warning_line() {
         let mut p = player();
         p.set_wpm(900);
         let mut terminal = Terminal::new(TestBackend::new(100, 6)).unwrap();
         terminal
-            .draw(|frame| render(frame, frame.area(), &p, Capabilities::default(), None))
+            .draw(|frame| {
+                render(frame, frame.area(), &p, Mode::Reader, Capabilities::default(), None)
+            })
             .unwrap();
         let buffer = terminal.backend().buffer();
         let line: String =
@@ -208,7 +253,9 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(100, 6)).unwrap();
         let p = player();
         terminal
-            .draw(|frame| render(frame, frame.area(), &p, Capabilities::default(), None))
+            .draw(|frame| {
+                render(frame, frame.area(), &p, Mode::Reader, Capabilities::default(), None)
+            })
             .unwrap();
         let buffer = terminal.backend().buffer();
         let line: String =
@@ -222,7 +269,9 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(12, 3)).unwrap();
         let p = player();
         terminal
-            .draw(|frame| render(frame, frame.area(), &p, Capabilities::default(), None))
+            .draw(|frame| {
+                render(frame, frame.area(), &p, Mode::Reader, Capabilities::default(), None)
+            })
             .unwrap();
     }
 }

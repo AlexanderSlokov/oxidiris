@@ -78,6 +78,10 @@ pub fn run(terminal: &mut DefaultTerminal, app: &mut App) -> Result<()> {
 
     loop {
         if dirty {
+            // The panel's wrap depends on its width, so the layout is settled before the draw
+            // rather than during it: `render` takes `&App` and cannot re-wrap on its own.
+            let size = terminal.size()?;
+            app.relayout(size.width, size.height);
             terminal.draw(|frame| ui::render(frame, app))?;
             dirty = false;
         }
@@ -102,7 +106,7 @@ pub fn run(terminal: &mut DefaultTerminal, app: &mut App) -> Result<()> {
 
         match rx.recv_timeout(timeout) {
             Ok(AppEvent::Key(key)) => {
-                if let Some(action) = keymap::resolve(key) {
+                if let Some(action) = keymap::resolve(key, app.mode) {
                     app.handle(action);
                     dirty = true;
                 }

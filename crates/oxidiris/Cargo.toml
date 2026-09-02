@@ -17,3 +17,6 @@ ratatui.workspace = true
 crossterm.workspace = true
 clap.workspace = true
 anyhow.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
