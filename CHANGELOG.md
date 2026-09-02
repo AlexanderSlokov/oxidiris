@@ -11,6 +11,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 Phase 3 is not finished: `OXD-033` (`<n>%` jump) and `OXD-035` (ramp-up on resume) remain. Both are
 small; see [`BACKLOG.md`](BACKLOG.md).
 
+## [0.2.1] - 2026-09-02
+
+Packaging only — the reader itself is byte-for-byte the same as v0.2.0. Installing no longer
+requires a Rust toolchain, which was the real barrier to anyone trying this. `OXD-077` stays open
+for the distribution channels (crates.io, Homebrew tap, AUR, Nix).
+
+### Added
+
+- **Prebuilt binaries on every tagged release.** A `Release` workflow builds `oxidiris` for Linux
+  (x86_64, aarch64), macOS (x86_64, aarch64) and Windows (x86_64) on a `v*` tag, and attaches the
+  archives plus a `SHA256SUMS` file to the GitHub release. Trying the reader no longer requires a
+  Rust toolchain. Part of `OXD-077`.
+- The Linux builds target musl and are statically linked, so one archive runs on any distribution
+  rather than binding to the builder's glibc.
+- The release job refuses to publish when the tag does not match the workspace version in
+  `Cargo.toml`. v0.1.0 shipped a manifest claim that did not match reality; this makes the
+  equivalent mistake impossible to tag.
+- README now carries a complete copy-paste install block per platform, plus the `cargo install
+  --git` route for people who already have Rust.
+
 ## [0.2.0] - 2026-09-02
 
 Phase 3 lands the context features (`OXD-030`…`OXD-036`). They are not extras: RSVP works by
@@ -145,6 +165,7 @@ Phases 0-2 of the backlog (`OXD-001`…`OXD-027`).
   not build on the version it advertises. Use 1.88 or newer. Corrected in the next release; see
   issue [#4](https://github.com/AlexanderSlokov/oxidiris/issues/4).
 
-[Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/AlexanderSlokov/oxidiris/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/AlexanderSlokov/oxidiris/releases/tag/v0.1.0

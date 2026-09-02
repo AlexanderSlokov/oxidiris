@@ -55,11 +55,84 @@ paper carefully, and it does not advertise a WPM number as an achievement.
 
 ## Install
 
+### Prebuilt binary
+
+No Rust toolchain required. Every release carries a binary for the platforms below; the Linux
+builds are statically linked against musl, so they run on any distribution regardless of its glibc
+version. Each block is complete — paste it, and you have `oxidiris` on your `PATH`.
+
+**Linux, x86_64**
+
 ```sh
-cargo install --path crates/oxidiris
+curl -fsSL https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-x86_64-unknown-linux-musl.tar.gz | tar -xz
+sudo install -m755 oxidiris-x86_64-unknown-linux-musl/oxidiris /usr/local/bin/oxidiris
+rm -rf oxidiris-x86_64-unknown-linux-musl
 ```
 
+**Linux, aarch64**
+
+```sh
+curl -fsSL https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-aarch64-unknown-linux-musl.tar.gz | tar -xz
+sudo install -m755 oxidiris-aarch64-unknown-linux-musl/oxidiris /usr/local/bin/oxidiris
+rm -rf oxidiris-aarch64-unknown-linux-musl
+```
+
+**macOS, Apple Silicon**
+
+```sh
+curl -fsSL https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-aarch64-apple-darwin.tar.gz | tar -xz
+sudo install -m755 oxidiris-aarch64-apple-darwin/oxidiris /usr/local/bin/oxidiris
+rm -rf oxidiris-aarch64-apple-darwin
+```
+
+**macOS, Intel**
+
+```sh
+curl -fsSL https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-x86_64-apple-darwin.tar.gz | tar -xz
+sudo install -m755 oxidiris-x86_64-apple-darwin/oxidiris /usr/local/bin/oxidiris
+rm -rf oxidiris-x86_64-apple-darwin
+```
+
+The macOS binaries are unsigned. Downloading with `curl` as above is fine, because Gatekeeper only
+quarantines what a browser or Finder wrote. If you fetched the archive in a browser instead, clear
+the flag once: `xattr -d com.apple.quarantine /usr/local/bin/oxidiris`.
+
+**Windows, x86_64** (PowerShell)
+
+```powershell
+$dst = "$env:LOCALAPPDATA\Programs\oxidiris"
+Invoke-WebRequest https://github.com/AlexanderSlokov/oxidiris/releases/latest/download/oxidiris-x86_64-pc-windows-msvc.zip -OutFile oxidiris.zip
+Expand-Archive oxidiris.zip -DestinationPath $dst -Force
+Move-Item "$dst\oxidiris-x86_64-pc-windows-msvc\oxidiris.exe" $dst -Force
+Remove-Item oxidiris.zip, "$dst\oxidiris-x86_64-pc-windows-msvc" -Recurse
+[Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path','User'));$dst", "User")
+```
+
+Open a new terminal afterward so the `PATH` change takes effect.
+
+**Check it worked**, on any platform:
+
+```sh
+oxidiris --version
+```
+
+A `SHA256SUMS` file is attached to every release if you want to verify the download.
+
+### From source
+
 Requires Rust 1.88 or newer.
+
+```sh
+cargo install --git https://github.com/AlexanderSlokov/oxidiris oxidiris --locked
+```
+
+From a clone of this repository:
+
+```sh
+cargo install --path crates/oxidiris --locked
+```
+
+A Homebrew tap and a crates.io publish are tracked as `OXD-077` in [`BACKLOG.md`](BACKLOG.md).
 
 ## Use
 
@@ -144,7 +217,7 @@ The workspace is two crates:
 - **`oxidiris`** — the terminal application.
 
 Design notes live in [`docs/informations/proposals.md`](docs/informations/proposals.md); decisions
-that departed from it are recorded in [`docs/decisions/`](docs/decisions/) and back-annotated into
+that departed from it are recorded in [`docs/decisions/`](docs/decisions) and back-annotated into
 the spec.
 
 ## Licence

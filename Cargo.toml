@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "3"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 # Edition 2024 itself only needs 1.85, but ratatui 0.30 and its dependency tree require 1.88.
 # Keep this in sync with the MSRV job in .github/workflows/ci.yml.
