@@ -7,6 +7,9 @@ use std::path::{Path, PathBuf};
 
 use oxidiris_pdf::PdfError;
 
+/// Every generated fixture, in the order `testdata/README.md` lists them.
+const FIXTURES: [&str; 3] = ["pdf_typography.pdf", "pdf_two_column.pdf", "pdf_no_text_layer.pdf"];
+
 fn testdata(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../testdata").join(name)
 }
@@ -18,9 +21,28 @@ fn extract(name: &str) -> Result<String, PdfError> {
 
 #[test]
 fn every_fixture_is_recognised_as_a_pdf() {
-    for name in ["pdf_typography.pdf", "pdf_two_column.pdf", "pdf_no_text_layer.pdf"] {
+    for name in FIXTURES {
         let bytes = std::fs::read(testdata(name)).unwrap();
         assert!(oxidiris_pdf::looks_like_pdf(&bytes), "{name} lost its header");
+    }
+}
+
+/// Regression guard for the `windows-latest` failure on PR #13.
+///
+/// These fixtures are almost all ASCII, so git's own heuristic calls them text and rewrites their
+/// line endings on a Windows checkout. One added byte per line shifts every offset in the
+/// cross-reference table, and the file stops parsing — reported as `InvalidTrailer`, which points
+/// nowhere near the cause, on a file nobody touched. `*.pdf binary` in `.gitattributes` is what
+/// prevents it; failing here says so out loud instead.
+#[test]
+fn fixtures_are_checked_out_byte_for_byte() {
+    for name in FIXTURES {
+        let bytes = std::fs::read(testdata(name)).unwrap();
+        assert!(
+            !bytes.windows(2).any(|pair| pair == b"\r\n"),
+            "{name} has CRLF line endings: the checkout rewrote it. \
+             `.gitattributes` must keep `*.pdf binary`."
+        );
     }
 }
 
