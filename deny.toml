@@ -8,6 +8,14 @@ targets = [
 
 [advisories]
 yanked = "deny"
+ignore = [
+    # RUSTSEC-2026-0192 — `ttf-parser` is unmaintained. It arrives transitively through
+    # lopdf -> pdf-extract, the PDF backend chosen in ADR 003, and the advisory itself says there
+    # is no upgrade to move to: the suggested replacement, `skrifa`, is a change lopdf has to make
+    # upstream. This is a maintenance notice, not a vulnerability — no unsoundness or exploitable
+    # behaviour is claimed. Delete this entry the moment lopdf switches.
+    "RUSTSEC-2026-0192",
+]
 
 [licenses]
 # Permissive licences only for dependencies. Oxidiris itself is GPL-3.0-or-later, which can
@@ -30,6 +38,7 @@ confidence-threshold = 0.9
 exceptions = [
     { name = "oxidiris", allow = ["GPL-3.0-or-later"] },
     { name = "oxidiris-core", allow = ["GPL-3.0-or-later"] },
+    { name = "oxidiris-pdf", allow = ["GPL-3.0-or-later"] },
 ]
 
 [bans]

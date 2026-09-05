@@ -43,6 +43,10 @@ reader frame is showing. It appears whenever the window is at least 80 columns w
 [`CHANGELOG.md`](CHANGELOG.md) for what this release contains and [`BACKLOG.md`](BACKLOG.md) for
 what comes next.
 
+**Unreleased** — PDFs read too, including two-column conference papers. Ligatures, hyphenated
+line breaks and stray page numbers are cleaned up on the way in; figure labels are not, yet. How
+that was decided, and measured, is in [ADR 003](docs/decisions/pdf-extraction.md).
+
 ## What it is not
 
 RSVP removes *regressions*, the small backward eye movements that make up 10-15% of natural reading
@@ -141,6 +145,7 @@ oxidiris README.md                  # read at the default 300 WPM
 oxidiris paper.md -w 450            # start faster
 oxidiris paper.md -m focus          # hide the text panel, reader frame only
 oxidiris notes.txt --pacing linear  # even timing, no punctuation pauses
+oxidiris borg.pdf                   # PDFs too, two columns included
 oxidiris BACKLOG.md --dump          # clean plain text on stdout
 oxidiris BACKLOG.md | less          # piping produces text, not a broken TUI
 ```
