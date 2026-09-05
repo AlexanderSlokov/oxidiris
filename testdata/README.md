@@ -18,6 +18,24 @@ behaviour, so please do not "tidy" the contents — the odd characters are the p
 | `utf16_bom.txt` | UTF-16LE with a byte order mark |
 | `latin1.txt` | Windows-1252 bytes that are invalid UTF-8 |
 | `empty.txt` | Zero bytes: must not panic anywhere |
+| `pdf_typography.pdf` | A `fi` ligature, a hyphenated line break, a real compound hyphen that must survive, and a page number standing alone |
+| `pdf_two_column.pdf` | Two columns that must be read one after the other, never interleaved |
+| `pdf_no_text_layer.pdf` | A drawn rectangle and no text, the way a scan looks: must produce an error, not an empty reader |
+
+## Regenerating the PDF fixtures
+
+The three PDFs are generated, not collected:
+
+```sh
+python3 testdata/make_pdf_fixtures.py
+```
+
+No third-party library is involved — the script writes the PDF structure itself, so changing a
+fixture does not mean installing a toolchain. The real papers the extractor was benchmarked
+against (Borg, Omega, MapReduce, Bigtable, Spanner) are deliberately absent: they are under
+publisher copyright, and a fixture has to be redistributable. See
+[`docs/decisions/pdf-extraction.md`](../docs/decisions/pdf-extraction.md) for the measurements
+they produced.
 
 ## Regenerating the Unicode fixtures
 

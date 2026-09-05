@@ -157,7 +157,7 @@ Known gaps carried forward, all deliberate and tracked:
 | OXD-050 | LaTeX Parser                                                                               | 5     | L    | OXD-017              | ⬜ Todo |
 | OXD-051 | Formula display strategy                                                                   | 5     | M    | OXD-050              | ⬜ Todo |
 | OXD-052 | Typst Parser                                                                               | 5     | M    | OXD-051              | ⬜ Todo |
-| OXD-060 | Spike: PDF extraction                                                                      | 6     | M    | OXD-017              | ⬜ Todo |
+| OXD-060 | Spike: PDF extraction                                                                      | 6     | M    | OXD-017              | ✅ Done |
 | OXD-061 | PDF De-columnizing                                                                         | 6     | XL   | OXD-060              | ⬜ Todo |
 | OXD-062 | Lazy parsing & cache                                                                       | 6     | L    | OXD-018              | ⬜ Todo |
 | OXD-070 | EPUB Parser                                                                                | 7     | L    | OXD-062              | ⬜ Todo |
@@ -999,25 +999,50 @@ Scope — compare on same 5 real two-column papers (IEEE, ACM, arXiv):
 Criteria: reading order accuracy · header/footer/footnote handling · performance · maintenance cost · cost of external dependency.
 
 Acceptance
-- [ ] `docs/decisions/pdf-extraction.md` created with clear recommendation and measured benchmarks
-- [ ] 5 sample PDFs added to `testdata/`
-- [ ] Human approval obtained before starting OXD-061
+- [x] `docs/decisions/pdf-extraction.md` created with clear recommendation and measured benchmarks
+- [x] 5 sample PDFs benchmarked — Borg, Omega, MapReduce, Bigtable, Spanner. **Not committed to
+  `testdata/`**: they are under publisher copyright, and a fixture has to be redistributable.
+  Three generated PDFs (`testdata/make_pdf_fixtures.py`) pin the behaviours instead
+- [x] Human approval obtained before starting OXD-061
+
+Outcome — the spike overturned its own premise. `pdf-extract` (pure Rust) beat Poppler on both
+reading order and speed, so there is no external dependency and no shelling out. Shipped as the
+`oxidiris-pdf` crate; `oxidiris-core` is untouched and still builds for wasm. Reading order comes
+from content-stream order, which is correct on all five papers.
 
 ---
 
 ### OXD-061 · PDF De-Columnizing
 
-Phase 6 · Depends OXD-060 · Crate core · Spec §8.2 · Size XL
+Phase 6 · Depends OXD-060 · Crate `oxidiris-pdf` · Spec §8.2 · Size XL → M
 
-> XL — MUST be broken into sub-tasks before work begins. Do not pick as single block.
+> Re-sized after OXD-060. Column clustering turned out **not** to be needed for the papers
+> measured: LaTeX emits columns in reading order and the content stream preserves it. What is
+> left is the geometry work for figures, which is a smaller and separable job.
 
-Scope — column detection via x-coordinate clustering · reorder reading order · filter header/footer/page numbers · group footnotes · handle figures and captions.
+Scope — what OXD-060 knowingly left open:
+- Filter figure and table text out of the body stream. Reading Borg, the Figure 1 labels
+  (`BorgMaster`, `link shard`, `UI shard`) land in the text after the first-page footer. Poppler
+  has the same defect, so there is no tool to defer to. Needs the figure's bounding box.
+- Group footnotes rather than leaving them mid-paragraph.
+- Column detection via x-coordinate clustering, as a fallback for files whose content stream is
+  *not* in reading order. No such file is in the corpus yet; find one before building this.
 
 Acceptance
-- [ ] 5 sample PDFs read in correct column order (manually verified)
-- [ ] No column interleaving (left column text jumping into right column)
-- [ ] Single-column PDFs remain functional
-- [ ] Encrypted/scanned image PDFs → clean error message, no panic (§4.4)
+- [x] 5 sample PDFs read in correct column order (verified by cross-checking two independent
+  extractors; the one disagreement, Omega, was Poppler's fault — see ADR 003)
+- [x] No column interleaving (left column text jumping into right column)
+- [x] Single-column PDFs remain functional
+- [x] Scanned image PDFs → clean error message, no panic (§4.4)
+- [ ] Encrypted PDFs → clean error message, no panic. Implemented and refused with a message, but
+  **untested**: there is no encrypted fixture. Writing an RC4-encrypted PDF by hand was judged
+  not worth the cost
+- [ ] Figure and table text no longer appears in the body stream
+
+Carried debt from OXD-060: `deny.toml` now ignores **RUSTSEC-2026-0192** (`ttf-parser`
+unmaintained), reached through `lopdf` → `pdf-extract`. The advisory says no upgrade exists; the
+replacement, `skrifa`, has to be adopted upstream in lopdf. Re-check on every dependency bump and
+delete the ignore entry as soon as it lands.
 
 ---
 

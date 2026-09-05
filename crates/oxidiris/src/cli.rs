@@ -54,6 +54,7 @@ EXAMPLES:
   oxidiris README.md                 Read a file at the default 300 WPM
   oxidiris paper.md -w 450           Start at 450 words per minute
   oxidiris notes.txt --pacing linear Disable punctuation-aware pauses
+  oxidiris borg.pdf                  Read a PDF, two-column papers included
   oxidiris paper.md -m focus         Hide the text panel, RSVP frame only
   oxidiris BACKLOG.md --dump         Print clean plain text and exit
   oxidiris BACKLOG.md | less         Piping also produces plain text

@@ -11,6 +11,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 Phase 3 is not finished: `OXD-033` (`<n>%` jump) and `OXD-035` (ramp-up on resume) remain. Both are
 small; see [`BACKLOG.md`](BACKLOG.md).
 
+### Added
+
+- **PDF support.** `oxidiris paper.pdf` opens a PDF the same way it opens Markdown, including
+  two-column conference papers. Detection is by file header rather than extension, so
+  `cat paper.pdf | oxidiris -` works and a mis-named file still reads. Closes `OXD-060`.
+- New crate `oxidiris-pdf`, holding the whole PDF dependency tree. `oxidiris-core` gains nothing
+  and still compiles for `wasm32-unknown-unknown`.
+- Extracted text is tidied before it reaches the reader: ligatures expanded (`efﬁcient` →
+  `efficient`), hyphenated line breaks welded back into words (`admission con-` / `trol` →
+  `admission control`), and isolated short numbers — chart axis labels and page numbers — dropped
+  so they do not each get their own pause in the RSVP frame.
+- A PDF that cannot be read says why: encrypted, damaged, or a scan with no text layer, the last
+  naming the page count and pointing at OCR. `pdf-extract` panics rather than erroring on some
+  malformed files, so the panic is caught and turned into a message (spec §4.4).
+- `testdata/make_pdf_fixtures.py` generates three small PDF fixtures with no third-party library.
+
+### Known limitations
+
+- Figure and table text still lands in the body stream — reading Borg, the Figure 1 labels appear
+  after the first-page footer. Poppler has the same defect. Tracked as `OXD-061`.
+- A PDF produces no heading structure, so the outline panel is empty for one.
+- A compound that breaks across lines at its own hyphen (`over-` / `commitment`) comes back
+  welded shut. Telling that apart from a typesetter's hyphen needs a dictionary.
+- The encrypted-PDF path is implemented but has no test fixture.
+
 ## [0.2.1] - 2026-09-02
 
 Packaging only — the reader itself is byte-for-byte the same as v0.2.0. Installing no longer

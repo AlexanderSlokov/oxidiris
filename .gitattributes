@@ -1,3 +1,9 @@
 # Golden frames are compared byte for byte. A CRLF checkout on Windows would fail every
 # snapshot test in CI for reasons that have nothing to do with the code (OXD-036).
 *.snap text eol=lf
+
+# The PDF fixtures are mostly ASCII, so git's heuristic reads them as text and rewrites their
+# line endings on a Windows checkout. Every added byte shifts the cross-reference table, and the
+# file stops parsing: `InvalidTrailer`, from a file nobody edited. That is exactly how the
+# windows-latest job failed on the OXD-060 pull request (#13).
+*.pdf binary

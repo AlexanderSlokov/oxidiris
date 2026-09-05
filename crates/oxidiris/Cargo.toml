@@ -13,6 +13,7 @@ categories.workspace = true
 
 [dependencies]
 oxidiris-core = { path = "../oxidiris-core", version = "0.2.1" }
+oxidiris-pdf = { path = "../oxidiris-pdf", version = "0.2.1" }
 ratatui.workspace = true
 crossterm.workspace = true
 clap.workspace = true

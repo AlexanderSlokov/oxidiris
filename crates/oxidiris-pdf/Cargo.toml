@@ -1,0 +1,16 @@
+[package]
+name = "oxidiris-pdf"
+description = "PDF text extraction for Oxidiris: turns a PDF into the plain text the core engine reads."
+license = "GPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+pdf-extract.workspace = true
+thiserror.workspace = true
